@@ -153,18 +153,27 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
   const createNewsMutation = useMutation({
     mutationFn: async (data: NewsFormData) => {
+      console.log('Mutation başlıyor, data:', data);
       const payload = {
         ...data,
+        sourceId: data.sourceId || null,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString() : null,
       };
+      console.log('API\'ye gönderilecek payload:', payload);
       
+      let response;
       if (news) {
-        return await apiRequest('PUT', `/api/news/${news.id}`, payload);
+        console.log('Haber güncelleniyor, ID:', news.id);
+        response = await apiRequest('PUT', `/api/news/${news.id}`, payload);
       } else {
-        return await apiRequest('POST', '/api/news', payload);
+        console.log('Yeni haber oluşturuluyor');
+        response = await apiRequest('POST', '/api/news', payload);
       }
+      console.log('API response:', response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation başarılı:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/news'] });
       toast({
         title: 'Başarılı',
@@ -173,7 +182,8 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       onClose();
     },
     onError: (error: any) => {
-      console.error('Haber kaydetme hatası:', error);
+      console.error('Mutation hatası:', error);
+      console.error('Hata detayları:', error.response, error.message);
       toast({
         title: 'Hata',
         description: error?.message || 'Haber kaydedilirken bir hata oluştu',
