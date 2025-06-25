@@ -206,6 +206,37 @@ export const insertNewspaperPageSchema = createInsertSchema(newspaperPages).omit
   updatedAt: true,
 });
 
+// Digital Magazine Table
+export const digitalMagazines = pgTable('digital_magazines', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  issueNumber: integer('issue_number').notNull(),
+  volume: integer('volume'),
+  publishDate: timestamp('publish_date').notNull(),
+  coverImageUrl: varchar('cover_image_url', { length: 500 }).notNull(),
+  pdfUrl: varchar('pdf_url', { length: 500 }),
+  description: text('description'),
+  category: varchar('category', { length: 100 }),
+  isPublished: boolean('is_published').default(false),
+  isFeatured: boolean('is_featured').default(false),
+  tags: text('tags').array(),
+  publisherId: integer('publisher_id').notNull().default(1),
+  language: varchar('language', { length: 10 }).default('tr'),
+  price: decimal('price', { precision: 10, scale: 2 }).default('0.00'),
+  downloadCount: integer('download_count').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export type DigitalMagazine = typeof digitalMagazines.$inferSelect;
+export type InsertDigitalMagazine = typeof digitalMagazines.$inferInsert;
+export const insertDigitalMagazineSchema = createInsertSchema(digitalMagazines).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  downloadCount: true,
+});
+
 export const insertAdvertisementSchema = createInsertSchema(advertisements).omit({
   id: true,
   createdAt: true,

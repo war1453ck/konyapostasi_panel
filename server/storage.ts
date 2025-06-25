@@ -1,5 +1,5 @@
 import { 
-  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds, newspaperPages,
+  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds, newspaperPages, digitalMagazines,
   type User, type InsertUser,
   type Category, type InsertCategory, type CategoryWithChildren,
   type City, type InsertCity,
@@ -10,6 +10,7 @@ import {
   type Advertisement, type InsertAdvertisement, type AdvertisementWithCreator,
   type ClassifiedAd, type InsertClassifiedAd, type ClassifiedAdWithApprover,
   type NewspaperPage, type InsertNewspaperPage,
+  type DigitalMagazine, type InsertDigitalMagazine,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, and, or, desc, sql } from "drizzle-orm";
@@ -106,6 +107,14 @@ export interface IStorage {
   updateNewspaperPage(id: number, page: Partial<InsertNewspaperPage>): Promise<NewspaperPage | undefined>;
   getAllNewspaperPages(): Promise<NewspaperPage[]>;
   deleteNewspaperPage(id: number): Promise<boolean>;
+
+  // Digital Magazines
+  getDigitalMagazine(id: number): Promise<DigitalMagazine | undefined>;
+  createDigitalMagazine(magazine: InsertDigitalMagazine): Promise<DigitalMagazine>;
+  updateDigitalMagazine(id: number, magazine: Partial<InsertDigitalMagazine>): Promise<DigitalMagazine | undefined>;
+  getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]>;
+  deleteDigitalMagazine(id: number): Promise<boolean>;
+  incrementDownloadCount(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -119,6 +128,7 @@ export class MemStorage implements IStorage {
   private advertisements: Map<number, Advertisement>;
   private classifiedAds: Map<number, ClassifiedAd>;
   private newspaperPages: Map<number, NewspaperPage>;
+  private digitalMagazines: Map<number, DigitalMagazine>;
   private currentUserId: number;
   private currentCategoryId: number;
   private currentCityId: number;
@@ -129,6 +139,7 @@ export class MemStorage implements IStorage {
   private currentAdvertisementId: number;
   private currentClassifiedAdId: number;
   private currentNewspaperPageId: number;
+  private currentDigitalMagazineId: number;
 
   constructor() {
     this.users = new Map();
@@ -141,6 +152,7 @@ export class MemStorage implements IStorage {
     this.advertisements = new Map();
     this.classifiedAds = new Map();
     this.newspaperPages = new Map();
+    this.digitalMagazines = new Map();
     this.currentUserId = 1;
     this.currentCategoryId = 1;
     this.currentCityId = 1;
@@ -151,6 +163,7 @@ export class MemStorage implements IStorage {
     this.currentAdvertisementId = 1;
     this.currentClassifiedAdId = 1;
     this.currentNewspaperPageId = 1;
+    this.currentDigitalMagazineId = 1;
 
     // Initialize with some default data
     this.initializeDefaultData();
@@ -362,6 +375,52 @@ export class MemStorage implements IStorage {
 
     this.newspaperPages.set(page1.id, page1);
     this.newspaperPages.set(page2.id, page2);
+
+    // Sample digital magazines
+    const magazine1: DigitalMagazine = {
+      id: this.currentDigitalMagazineId++,
+      title: 'Teknoloji ve Yaşam Dergisi',
+      issueNumber: 45,
+      volume: 4,
+      publishDate: new Date('2025-06-01'),
+      coverImageUrl: 'https://via.placeholder.com/400x600/0066cc/fff?text=Dergi+45',
+      pdfUrl: null,
+      description: 'Teknolojinin günlük yaşama etkilerini inceleyen kapsamlı dergi',
+      category: 'Teknoloji',
+      isPublished: true,
+      isFeatured: true,
+      tags: ['teknoloji', 'yaşam', 'gelecek'],
+      publisherId: 1,
+      language: 'tr',
+      price: '15.00',
+      downloadCount: 125,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const magazine2: DigitalMagazine = {
+      id: this.currentDigitalMagazineId++,
+      title: 'Kültür ve Sanat Dergisi',
+      issueNumber: 23,
+      volume: 2,
+      publishDate: new Date('2025-05-15'),
+      coverImageUrl: 'https://via.placeholder.com/400x600/cc6600/fff?text=Dergi+23',
+      pdfUrl: null,
+      description: 'Yerel kültür ve sanat etkinliklerine odaklanan aylık dergi',
+      category: 'Kültür',
+      isPublished: true,
+      isFeatured: false,
+      tags: ['kültür', 'sanat', 'yerel'],
+      publisherId: 1,
+      language: 'tr',
+      price: '12.00',
+      downloadCount: 87,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.digitalMagazines.set(magazine1.id, magazine1);
+    this.digitalMagazines.set(magazine2.id, magazine2);
   }
 
   // Users
