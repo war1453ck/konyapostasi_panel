@@ -151,22 +151,22 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Ayarlar</h1>
-          <p className="text-muted-foreground">Platform ayarlarını yönetin</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Ayarlar</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Platform ayarlarını yönetin</p>
         </div>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="general">Genel</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
-          <TabsTrigger value="security">Güvenlik</TabsTrigger>
-          <TabsTrigger value="notifications">Bildirimler</TabsTrigger>
-          <TabsTrigger value="backup">Yedekleme</TabsTrigger>
+      <Tabs defaultValue="general" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          <TabsTrigger value="general" className="text-xs sm:text-sm">Genel</TabsTrigger>
+          <TabsTrigger value="seo" className="text-xs sm:text-sm">SEO</TabsTrigger>
+          <TabsTrigger value="security" className="text-xs sm:text-sm">Güvenlik</TabsTrigger>
+          <TabsTrigger value="notifications" className="text-xs sm:text-sm">Bildirimler</TabsTrigger>
+          <TabsTrigger value="backup" className="text-xs sm:text-sm">Yedekleme</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -176,8 +176,8 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <Form {...generalForm}>
-                <form onSubmit={generalForm.handleSubmit(onGeneralSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={generalForm.handleSubmit(onGeneralSubmit)} className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FormField
                       control={generalForm.control}
                       name="siteName"

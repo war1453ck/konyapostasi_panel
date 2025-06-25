@@ -123,21 +123,22 @@ export default function Advertisements() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Reklam Yönetimi</h1>
-          <p className="text-muted-foreground">Reklamları yönetin ve performansları takip edin</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Reklam Yönetimi</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Reklamları yönetin ve performansları takip edin</p>
         </div>
-        <Button onClick={handleCreateAd}>
+        <Button onClick={handleCreateAd} className="w-full sm:w-auto min-h-[44px]">
           <LucideIcons.Plus className="w-4 h-4 mr-2" />
-          Yeni Reklam
+          <span className="hidden sm:inline">Yeni Reklam</span>
+          <span className="sm:hidden">Reklam Ekle</span>
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplam Reklam</CardTitle>

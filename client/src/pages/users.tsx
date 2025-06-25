@@ -197,29 +197,30 @@ export default function Users() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Kullanıcı Yönetimi</h1>
-          <p className="text-muted-foreground">Sistem kullanıcılarını yönetin</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kullanıcı Yönetimi</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Sistem kullanıcılarını yönetin</p>
         </div>
-        <Button onClick={handleCreateUser}>
+        <Button onClick={handleCreateUser} className="w-full sm:w-auto min-h-[44px]">
           <LucideIcons.Plus className="w-4 h-4 mr-2" />
-          Yeni Kullanıcı
+          <span className="hidden sm:inline">Yeni Kullanıcı</span>
+          <span className="sm:hidden">Kullanıcı Ekle</span>
         </Button>
       </div>
 
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
             <CardTitle>Kullanıcı Listesi</CardTitle>
             <Input
               placeholder="Kullanıcı ara..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64"
+              className="w-full sm:w-64 min-h-[44px]"
             />
           </div>
         </CardHeader>

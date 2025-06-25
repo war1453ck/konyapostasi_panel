@@ -127,16 +127,17 @@ export default function Articles() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Makale Yönetimi</h1>
-          <p className="text-muted-foreground">Yazarlar için makale sistemi</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Makale Yönetimi</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Yazarlar için makale sistemi</p>
         </div>
-        <Button onClick={handleCreateArticle}>
+        <Button onClick={handleCreateArticle} className="w-full sm:w-auto min-h-[44px]">
           <LucideIcons.Plus className="w-4 h-4 mr-2" />
-          Yeni Makale
+          <span className="hidden sm:inline">Yeni Makale</span>
+          <span className="sm:hidden">Makale Ekle</span>
         </Button>
       </div>
 
@@ -146,15 +147,15 @@ export default function Articles() {
           <CardTitle>Filtreler</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
             <Input
               placeholder="Makale ara..."
               value={filters.search}
               onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="w-64"
+              className="w-full sm:w-64 min-h-[44px]"
             />
             <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40 min-h-[44px]">
                 <SelectValue placeholder="Durum" />
               </SelectTrigger>
               <SelectContent>
@@ -166,7 +167,7 @@ export default function Articles() {
               </SelectContent>
             </Select>
             <Select value={filters.categoryId} onValueChange={(value) => setFilters(prev => ({ ...prev, categoryId: value }))}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48 min-h-[44px]">
                 <SelectValue placeholder="Kategori" />
               </SelectTrigger>
               <SelectContent>

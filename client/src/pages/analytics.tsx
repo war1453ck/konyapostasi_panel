@@ -67,16 +67,16 @@ export default function Analytics() {
   const totalViews = news.reduce((sum, n) => sum + n.viewCount, 0);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Analitikler</h1>
-          <p className="text-muted-foreground">Platform performansını takip edin</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+        <div className="flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Analitikler</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Platform performansını takip edin</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40 min-h-[44px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -86,15 +86,16 @@ export default function Analytics() {
               <SelectItem value="90">Son 3 Ay</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button variant="outline" className="w-full sm:w-auto min-h-[44px]">
             <LucideIcons.Download className="w-4 h-4 mr-2" />
-            Rapor İndir
+            <span className="hidden sm:inline">Rapor İndir</span>
+            <span className="sm:hidden">İndir</span>
           </Button>
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <StatsCard
           title="Toplam Görüntülenme"
           value={totalViews.toLocaleString('tr-TR')}
