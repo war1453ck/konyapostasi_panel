@@ -21,7 +21,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [notifications] = useState([
+  const [notifications, setNotifications] = useState([
     {
       id: 1,
       title: "Yeni haber eklendi",
@@ -65,6 +65,39 @@ export function Header({ onMenuClick }: HeaderProps) {
       case 'comment': return '💬';
       case 'magazine': return '📖';
       default: return '🔔';
+    }
+  };
+
+  const markAsRead = (notificationId: number) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === notificationId 
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    // Mark as read first
+    markAsRead(notification.id);
+    
+    // Then navigate
+    switch(notification.type) {
+      case 'news':
+        window.location.href = '/news';
+        break;
+      case 'category':
+        window.location.href = '/categories';
+        break;
+      case 'comment':
+        window.location.href = '/comments';
+        break;
+      case 'magazine':
+        window.location.href = '/magazine-categories';
+        break;
+      default:
+        break;
     }
   };
 
@@ -129,26 +162,8 @@ export function Header({ onMenuClick }: HeaderProps) {
                 {notifications.map((notification) => (
                   <div 
                     key={notification.id} 
-                    className={`p-3 hover:bg-muted/50 cursor-pointer border-b border-border/50 last:border-b-0 ${!notification.read ? 'bg-muted/30' : ''}`}
-                    onClick={() => {
-                      // Navigate based on notification type
-                      switch(notification.type) {
-                        case 'news':
-                          window.location.href = '/news';
-                          break;
-                        case 'category':
-                          window.location.href = '/categories';
-                          break;
-                        case 'comment':
-                          window.location.href = '/comments';
-                          break;
-                        case 'magazine':
-                          window.location.href = '/magazine-categories';
-                          break;
-                        default:
-                          break;
-                      }
-                    }}
+                    className={`p-3 hover:bg-muted/50 cursor-pointer border-b border-border/50 last:border-b-0 transition-colors ${!notification.read ? 'bg-muted/30' : ''}`}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start space-x-3">
                       <span className="text-base sm:text-lg flex-shrink-0">{getNotificationIcon(notification.type)}</span>
@@ -178,13 +193,25 @@ export function Header({ onMenuClick }: HeaderProps) {
                 )}
               </div>
               <DropdownMenuSeparator />
-              <div className="p-2">
+              <div className="p-2 flex gap-2">
                 <button 
-                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                  className="flex-1 text-center text-sm text-muted-foreground hover:text-foreground py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
                   onClick={() => window.location.href = '/notifications'}
                 >
                   Tüm bildirimleri görüntüle
                 </button>
+                {unreadCount > 0 && (
+                  <button 
+                    className="text-sm text-muted-foreground hover:text-foreground py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      setNotifications(prev => 
+                        prev.map(notification => ({ ...notification, read: true }))
+                      );
+                    }}
+                  >
+                    Tümünü okundu işaretle
+                  </button>
+                )}
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
