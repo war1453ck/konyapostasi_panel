@@ -225,54 +225,54 @@ export default function MagazineCategoriesPage() {
       </div>
 
       {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {categories.map((category: MagazineCategory) => {
           const IconComponent = LucideIcons[category.icon as keyof typeof LucideIcons] || LucideIcons.BookOpen;
           
           return (
             <Card key={category.id} className="group hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex items-center space-x-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+                <div className="flex items-center space-x-2 flex-1 min-w-0">
                   <div 
-                    className="p-2 rounded-lg"
+                    className="p-1.5 sm:p-2 rounded-lg flex-shrink-0"
                     style={{ backgroundColor: `${category.color}20`, color: category.color }}
                   >
-                    <IconComponent className="w-4 h-4" />
+                    <IconComponent className="w-3 h-3 sm:w-4 sm:h-4" />
                   </div>
-                  <div>
-                    <CardTitle className="text-base">{category.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">/{category.slug}</p>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-sm sm:text-base truncate">{category.name}</CardTitle>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">/{category.slug}</p>
                   </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
-                      <LucideIcons.MoreVertical className="w-4 h-4" />
+                    <Button variant="ghost" size="sm" className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 h-8 w-8 p-0">
+                      <LucideIcons.MoreVertical className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-32">
                     <DropdownMenuItem onClick={() => handleEditCategory(category)}>
-                      <LucideIcons.Edit className="w-4 h-4 mr-2" />
+                      <LucideIcons.Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       Düzenle
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => handleDeleteCategory(category.id)}
                       className="text-red-600"
                     >
-                      <LucideIcons.Trash2 className="w-4 h-4 mr-2" />
+                      <LucideIcons.Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       Sil
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 sm:p-4 pt-0">
                 {category.description && (
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                     {category.description}
                   </p>
                 )}
                 <div className="flex items-center justify-between">
-                  <Badge variant={category.isActive ? "default" : "secondary"}>
+                  <Badge variant={category.isActive ? "default" : "secondary"} className="text-xs">
                     {category.isActive ? 'Aktif' : 'Pasif'}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
@@ -287,24 +287,25 @@ export default function MagazineCategoriesPage() {
 
       {/* Create/Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {selectedCategory ? 'Kategori Düzenle' : 'Yeni Kategori'}
             </DialogTitle>
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Kategori Adı</FormLabel>
+                    <FormLabel className="text-sm font-medium">Kategori Adı</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
+                        className="h-9 sm:h-10"
                         onChange={(e) => {
                           field.onChange(e);
                           if (!selectedCategory) {
@@ -323,9 +324,9 @@ export default function MagazineCategoriesPage() {
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>URL Slug</FormLabel>
+                    <FormLabel className="text-sm font-medium">URL Slug</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} className="h-9 sm:h-10" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -337,25 +338,25 @@ export default function MagazineCategoriesPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Açıklama</FormLabel>
+                    <FormLabel className="text-sm font-medium">Açıklama</FormLabel>
                     <FormControl>
-                      <Textarea {...field} rows={2} />
+                      <Textarea {...field} rows={2} className="text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <FormField
                   control={form.control}
                   name="icon"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>İkon</FormLabel>
+                      <FormLabel className="text-sm font-medium">İkon</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -365,8 +366,8 @@ export default function MagazineCategoriesPage() {
                             return (
                               <SelectItem key={icon} value={icon}>
                                 <div className="flex items-center space-x-2">
-                                  <IconComponent className="w-4 h-4" />
-                                  <span>{icon}</span>
+                                  <IconComponent className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  <span className="text-sm">{icon}</span>
                                 </div>
                               </SelectItem>
                             );
@@ -383,13 +384,13 @@ export default function MagazineCategoriesPage() {
                   name="color"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Renk</FormLabel>
-                      <div className="flex space-x-1">
+                      <FormLabel className="text-sm font-medium">Renk</FormLabel>
+                      <div className="flex flex-wrap gap-1 sm:gap-1.5">
                         {availableColors.map((color) => (
                           <button
                             key={color}
                             type="button"
-                            className={`w-6 h-6 rounded border-2 ${
+                            className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 ${
                               field.value === color ? 'border-gray-800' : 'border-gray-300'
                             }`}
                             style={{ backgroundColor: color }}
@@ -403,17 +404,18 @@ export default function MagazineCategoriesPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <FormField
                   control={form.control}
                   name="sortOrder"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sıra</FormLabel>
+                      <FormLabel className="text-sm font-medium">Sıra</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
                           {...field} 
+                          className="h-9 sm:h-10"
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                         />
                       </FormControl>
@@ -426,9 +428,9 @@ export default function MagazineCategoriesPage() {
                   control={form.control}
                   name="isActive"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-2 sm:p-3">
                       <div className="space-y-0.5">
-                        <FormLabel>Aktif</FormLabel>
+                        <FormLabel className="text-sm font-medium">Aktif</FormLabel>
                       </div>
                       <FormControl>
                         <Switch
@@ -441,20 +443,22 @@ export default function MagazineCategoriesPage() {
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-2 pt-3 sm:pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => setIsModalOpen(false)}
+                  className="h-9 sm:h-10 order-2 sm:order-1"
                 >
                   İptal
                 </Button>
                 <Button 
                   type="submit"
                   disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+                  className="h-9 sm:h-10 order-1 sm:order-2"
                 >
                   {createCategoryMutation.isPending || updateCategoryMutation.isPending ? (
-                    <LucideIcons.Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <LucideIcons.Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin mr-2" />
                   ) : null}
                   {selectedCategory ? 'Güncelle' : 'Oluştur'}
                 </Button>
