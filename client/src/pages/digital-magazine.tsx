@@ -58,9 +58,9 @@ const categories = [
 export default function DigitalMagazinePage() {
   const [filters, setFilters] = useState({
     search: '',
-    category: '',
-    isPublished: '',
-    isFeatured: ''
+    category: 'all',
+    isPublished: 'all',
+    isFeatured: 'all'
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMagazine, setSelectedMagazine] = useState<DigitalMagazine | null>(null);
@@ -167,10 +167,10 @@ export default function DigitalMagazinePage() {
   const filteredMagazines = magazines.filter((magazine: DigitalMagazine) => {
     const matchesSearch = magazine.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                          magazine.description?.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesCategory = !filters.category || magazine.category === filters.category;
-    const matchesPublished = filters.isPublished === '' || 
+    const matchesCategory = !filters.category || filters.category === 'all' || magazine.category === filters.category;
+    const matchesPublished = filters.isPublished === '' || filters.isPublished === 'all' || 
                            (filters.isPublished === 'true' ? magazine.isPublished : !magazine.isPublished);
-    const matchesFeatured = filters.isFeatured === '' || 
+    const matchesFeatured = filters.isFeatured === '' || filters.isFeatured === 'all' || 
                           (filters.isFeatured === 'true' ? magazine.isFeatured : !magazine.isFeatured);
     
     return matchesSearch && matchesCategory && matchesPublished && matchesFeatured;
@@ -402,7 +402,7 @@ export default function DigitalMagazinePage() {
                 <SelectValue placeholder="Kategori seçin" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tüm Kategoriler</SelectItem>
+                <SelectItem value="all">Tüm Kategoriler</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -418,7 +418,7 @@ export default function DigitalMagazinePage() {
                 <SelectValue placeholder="Yayın durumu" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Hepsi</SelectItem>
+                <SelectItem value="all">Hepsi</SelectItem>
                 <SelectItem value="true">Yayınlanan</SelectItem>
                 <SelectItem value="false">Taslak</SelectItem>
               </SelectContent>
@@ -431,7 +431,7 @@ export default function DigitalMagazinePage() {
                 <SelectValue placeholder="Öne çıkan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Hepsi</SelectItem>
+                <SelectItem value="all">Hepsi</SelectItem>
                 <SelectItem value="true">Öne Çıkan</SelectItem>
                 <SelectItem value="false">Normal</SelectItem>
               </SelectContent>
