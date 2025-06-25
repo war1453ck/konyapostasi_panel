@@ -56,7 +56,7 @@ export default function Analytics() {
     .sort((a, b) => b.viewCount - a.viewCount)
     .slice(0, 10);
 
-  const categoryStats = categories.map(category => ({
+  const categoryStats = (categories || []).map((category: any) => ({
     ...category,
     newsCount: news.filter(n => n.categoryId === category.id).length,
     totalViews: news
