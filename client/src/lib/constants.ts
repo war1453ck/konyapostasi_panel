@@ -89,11 +89,19 @@ const DEFAULT_MENU_ITEMS = [
         visible: true,
       },
       {
+        key: 'magazine-categories',
+        label: 'Dergi Kategorileri',
+        path: '/magazine-categories',
+        icon: 'Bookmark',
+        order: 4,
+        visible: true,
+      },
+      {
         key: 'articles',
         label: 'Makaleler',
         path: '/articles',
         icon: 'PenTool',
-        order: 4,
+        order: 5,
         visible: true,
       },
       {
@@ -101,7 +109,7 @@ const DEFAULT_MENU_ITEMS = [
         label: 'Kategoriler',
         path: '/categories',
         icon: 'Tags',
-        order: 5,
+        order: 6,
         visible: true,
       },
       {
@@ -109,7 +117,7 @@ const DEFAULT_MENU_ITEMS = [
         label: 'Yorumlar',
         path: '/comments',
         icon: 'MessageSquare',
-        order: 6,
+        order: 7,
         visible: true,
       },
     ],
