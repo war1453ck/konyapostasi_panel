@@ -675,41 +675,43 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 border-t px-4 py-3 sm:px-6 z-50">
-          <div className="flex flex-row gap-2 sm:gap-3 max-w-4xl mx-auto">
-            <Button
-              type="button"
-              onClick={publish}
-              disabled={createNewsMutation.isPending}
-              className="flex-1 sm:flex-none sm:w-auto h-12 text-base font-semibold"
-            >
-              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={submitForReview}
-              disabled={createNewsMutation.isPending}
-              className="flex-1 sm:flex-none sm:w-auto h-12 text-base"
-            >
-              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İnceleme'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={saveAsDraft}
-              disabled={createNewsMutation.isPending}
-              className="flex-1 sm:flex-none sm:w-auto h-12 text-base"
-            >
-              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak'}
-            </Button>
+          <div className="flex flex-row justify-between sm:justify-end gap-2 sm:gap-3 max-w-4xl mx-auto">
             <Button 
               type="button" 
               variant="ghost" 
               onClick={onClose} 
-              className="flex-shrink-0 w-12 h-12 p-0 text-muted-foreground"
+              className="flex-shrink-0 w-12 h-12 p-0 text-muted-foreground sm:order-last"
             >
               ×
             </Button>
+            <div className="flex flex-row gap-2 sm:gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={saveAsDraft}
+                disabled={createNewsMutation.isPending}
+                className="flex-1 sm:flex-none sm:w-auto h-12 text-sm sm:text-base"
+              >
+                {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={submitForReview}
+                disabled={createNewsMutation.isPending}
+                className="flex-1 sm:flex-none sm:w-auto h-12 text-sm sm:text-base"
+              >
+                {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İnceleme'}
+              </Button>
+              <Button
+                type="button"
+                onClick={publish}
+                disabled={createNewsMutation.isPending}
+                className="flex-1 sm:flex-none sm:w-auto h-12 text-sm sm:text-base font-semibold"
+              >
+                {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
