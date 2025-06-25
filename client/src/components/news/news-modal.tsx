@@ -255,20 +255,21 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[100vw] h-[100vh] sm:w-[95vw] sm:max-w-4xl sm:h-[90vh] max-h-screen overflow-y-auto p-3 sm:p-6 sm:rounded-lg rounded-none">
-        <DialogHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 pb-4 border-b">
+      <DialogContent className="w-[100vw] h-[100vh] sm:w-[95vw] sm:max-w-4xl sm:h-[90vh] max-h-screen p-0 sm:p-6 sm:rounded-lg rounded-none overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0 px-4 py-4 sm:px-6 border-b bg-background">
           <DialogTitle className="text-lg sm:text-xl font-bold">
             {news ? 'Haberi Düzenle' : 'Yeni Haber Oluştur'}
           </DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 pt-4">
-            <div className="space-y-4 sm:space-y-8">
-              {/* Temel Bilgiler */}
-              <Card>
-                <CardContent className="pt-4 sm:pt-6 space-y-3 sm:space-y-4">
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Temel Bilgiler</h3>
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="pb-20">
+              <div className="space-y-4 sm:space-y-6">
+                {/* Temel Bilgiler */}
+                <Card>
+                  <CardContent className="pt-4 sm:pt-6 space-y-3 sm:space-y-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Temel Bilgiler</h3>
                   
                   <FormField
                     control={form.control}
@@ -666,50 +667,51 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                       />
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t pt-4 pb-2 -mx-3 sm:-mx-6 px-3 sm:px-6 mt-6">
-              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={onClose} 
-                  className="w-full sm:w-auto order-4 sm:order-1 h-12 text-base"
-                >
-                  İptal
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={saveAsDraft}
-                  disabled={createNewsMutation.isPending}
-                  className="w-full sm:w-auto order-3 sm:order-2 h-12 text-base"
-                >
-                  {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak Kaydet'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={submitForReview}
-                  disabled={createNewsMutation.isPending}
-                  className="w-full sm:w-auto order-2 sm:order-3 h-12 text-base"
-                >
-                  {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İncelemeye Gönder'}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={publish}
-                  disabled={createNewsMutation.isPending}
-                  className="w-full sm:w-auto order-1 sm:order-4 h-12 text-base font-semibold"
-                >
-                  {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
-                </Button>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
+
+        <div className="flex-shrink-0 bg-background border-t px-4 py-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose} 
+              className="w-full sm:w-auto order-4 sm:order-1 h-12 text-base"
+            >
+              İptal
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={saveAsDraft}
+              disabled={createNewsMutation.isPending}
+              className="w-full sm:w-auto order-3 sm:order-2 h-12 text-base"
+            >
+              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak Kaydet'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={submitForReview}
+              disabled={createNewsMutation.isPending}
+              className="w-full sm:w-auto order-2 sm:order-3 h-12 text-base"
+            >
+              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İncelemeye Gönder'}
+            </Button>
+            <Button
+              type="button"
+              onClick={publish}
+              disabled={createNewsMutation.isPending}
+              className="w-full sm:w-auto order-1 sm:order-4 h-12 text-base font-semibold"
+            >
+              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
