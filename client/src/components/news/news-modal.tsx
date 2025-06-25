@@ -264,7 +264,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
         <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="pb-20">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 sm:pb-4">
               <div className="space-y-4 sm:space-y-6">
                 {/* Temel Bilgiler */}
                 <Card>
@@ -674,41 +674,41 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
           </Form>
         </div>
 
-        <div className="flex-shrink-0 bg-background border-t px-4 py-3 sm:px-6">
-          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose} 
-              className="w-full sm:w-auto order-4 sm:order-1 h-12 text-base"
-            >
-              İptal
-            </Button>
+        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 border-t px-4 py-3 sm:px-6 z-50">
+          <div className="flex flex-row gap-2 sm:gap-3 max-w-4xl mx-auto">
             <Button
               type="button"
-              variant="outline"
-              onClick={saveAsDraft}
+              onClick={publish}
               disabled={createNewsMutation.isPending}
-              className="w-full sm:w-auto order-3 sm:order-2 h-12 text-base"
+              className="flex-1 sm:flex-none sm:w-auto h-12 text-base font-semibold"
             >
-              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak Kaydet'}
+              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={submitForReview}
               disabled={createNewsMutation.isPending}
-              className="w-full sm:w-auto order-2 sm:order-3 h-12 text-base"
+              className="flex-1 sm:flex-none sm:w-auto h-12 text-base"
             >
-              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İncelemeye Gönder'}
+              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İnceleme'}
             </Button>
             <Button
               type="button"
-              onClick={publish}
+              variant="outline"
+              onClick={saveAsDraft}
               disabled={createNewsMutation.isPending}
-              className="w-full sm:w-auto order-1 sm:order-4 h-12 text-base font-semibold"
+              className="flex-1 sm:flex-none sm:w-auto h-12 text-base"
             >
-              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
+              {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak'}
+            </Button>
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={onClose} 
+              className="flex-shrink-0 w-12 h-12 p-0 text-muted-foreground"
+            >
+              ×
             </Button>
           </div>
         </div>
