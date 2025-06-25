@@ -1,8 +1,9 @@
 import { 
-  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds, newspaperPages, digitalMagazines, magazineCategories,
+  users, categories, cities, sources, news, articles, comments, media, advertisements, classifiedAds, newspaperPages, digitalMagazines, magazineCategories,
   type User, type InsertUser,
   type Category, type InsertCategory, type CategoryWithChildren,
   type City, type InsertCity,
+  type Source, type InsertSource,
   type News, type InsertNews, type NewsWithDetails,
   type Article, type InsertArticle, type ArticleWithDetails,
   type Comment, type InsertComment, type CommentWithNews,
@@ -41,6 +42,15 @@ export interface IStorage {
   updateCity(id: number, city: Partial<InsertCity>): Promise<City | undefined>;
   getAllCities(): Promise<City[]>;
   deleteCity(id: number): Promise<boolean>;
+
+  // Sources
+  getSource(id: number): Promise<Source | undefined>;
+  getSourceBySlug(slug: string): Promise<Source | undefined>;
+  createSource(source: InsertSource): Promise<Source>;
+  updateSource(id: number, source: Partial<InsertSource>): Promise<Source | undefined>;
+  getAllSources(): Promise<Source[]>;
+  getActiveSources(): Promise<Source[]>;
+  deleteSource(id: number): Promise<boolean>;
 
   // Articles
   getArticle(id: number): Promise<ArticleWithDetails | undefined>;
@@ -2212,7 +2222,7 @@ export class DatabaseStorage implements IStorage {
     return sourceList[0];
   }
 
-  async createSource(data: InsertSource): Promise<Source | undefined> {
+  async createSource(data: InsertSource): Promise<Source> {
     const [source] = await db
       .insert(sources)
       .values({

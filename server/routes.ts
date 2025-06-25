@@ -1,7 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertCategorySchema, insertNewsSchema, insertCommentSchema, insertMediaSchema, insertAdvertisementSchema, insertClassifiedAdSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertCategorySchema, 
+  insertNewsSchema, 
+  insertCommentSchema, 
+  insertMediaSchema, 
+  insertSourceSchema,
+  insertAdvertisementSchema, 
+  insertClassifiedAdSchema,
+  insertDigitalMagazineSchema,
+  insertMagazineCategorySchema,
+  insertNewspaperPageSchema
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
