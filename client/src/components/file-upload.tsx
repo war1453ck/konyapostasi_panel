@@ -3,24 +3,36 @@ import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 
 interface FileUploadProps {
-  onFileUpload: (files: File[]) => void;
+  value?: string;
+  onChange?: (value: string) => void;
+  onFileUpload?: (files: File[]) => void;
   accept?: Record<string, string[]>;
   maxFiles?: number;
+  maxSize?: number;
   className?: string;
 }
 
 export function FileUpload({ 
+  value,
+  onChange,
   onFileUpload, 
   accept = { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] }, 
-  maxFiles = 1, 
+  maxFiles = 1,
+  maxSize,
   className 
 }: FileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    onFileUpload(acceptedFiles);
+    if (onFileUpload) {
+      onFileUpload(acceptedFiles);
+    }
+    if (onChange && acceptedFiles.length > 0) {
+      // Simulate file upload - in real app this would upload to server
+      onChange(URL.createObjectURL(acceptedFiles[0]));
+    }
     setIsDragOver(false);
-  }, [onFileUpload]);
+  }, [onFileUpload, onChange]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

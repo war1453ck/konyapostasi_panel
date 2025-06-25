@@ -51,22 +51,22 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       slug: insertNewsSchema.shape.slug.optional(),
     })),
     defaultValues: {
-      title: news?.title || '',
-      slug: news?.slug || '',
-      summary: news?.summary || '',
-      content: news?.content || '',
-      categoryId: news?.categoryId || undefined,
-      status: news?.status || 'draft',
-      featuredImage: news?.featuredImage || '',
-      metaTitle: news?.metaTitle || '',
-      metaDescription: news?.metaDescription || '',
-      authorId: news?.authorId || 1,
-      keywords: news?.keywords || '',
-      cityId: news?.cityId || undefined,
-      sourceId: news?.sourceId || undefined,
-      editorId: news?.editorId || undefined,
-      videoUrl: news?.videoUrl || '',
-      videoThumbnail: news?.videoThumbnail || '',
+      title: '',
+      slug: '',
+      summary: '',
+      content: '',
+      categoryId: undefined,
+      status: 'draft',
+      featuredImage: '',
+      metaTitle: '',
+      metaDescription: '',
+      authorId: 1,
+      keywords: '',
+      cityId: undefined,
+      sourceId: undefined,
+      editorId: undefined,
+      videoUrl: '',
+      videoThumbnail: '',
     },
   });
 
@@ -115,6 +115,49 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     console.log('Form verisi:', data);
     createNewsMutation.mutate(data);
   };
+
+  // Form reset when news prop changes
+  useEffect(() => {
+    if (news) {
+      form.reset({
+        title: news.title || '',
+        slug: news.slug || '',
+        summary: news.summary || '',
+        content: news.content || '',
+        categoryId: news.categoryId || undefined,
+        status: news.status || 'draft',
+        featuredImage: news.featuredImage || '',
+        metaTitle: news.metaTitle || '',
+        metaDescription: news.metaDescription || '',
+        authorId: news.authorId || 1,
+        keywords: news.keywords || '',
+        cityId: news.cityId || undefined,
+        sourceId: news.sourceId || undefined,
+        editorId: news.editorId || undefined,
+        videoUrl: news.videoUrl || '',
+        videoThumbnail: news.videoThumbnail || '',
+      });
+    } else if (isOpen) {
+      form.reset({
+        title: '',
+        slug: '',
+        summary: '',
+        content: '',
+        categoryId: undefined,
+        status: 'draft',
+        featuredImage: '',
+        metaTitle: '',
+        metaDescription: '',
+        authorId: 1,
+        keywords: '',
+        cityId: undefined,
+        sourceId: undefined,
+        editorId: undefined,
+        videoUrl: '',
+        videoThumbnail: '',
+      });
+    }
+  }, [news, isOpen, form]);
 
   // Slug otomatik oluşturma
   const title = form.watch('title');
@@ -207,13 +250,15 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                   <FormField
                     control={form.control}
                     name="summary"
-                    render={({ field }) => (
+                    render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
                         <FormLabel className="text-sm font-medium">Özet</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Haber özeti..."
                             className="min-h-[80px] resize-none"
+                            value={value || ''}
+                            onChange={onChange}
                             {...field}
                           />
                         </FormControl>
@@ -236,7 +281,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {categories.map((category: any) => (
+                              {(categories as any[]).map((category) => (
                                 <SelectItem key={category.id} value={category.id.toString()}>
                                   {category.name}
                                 </SelectItem>
@@ -261,7 +306,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {cities.map((city: any) => (
+                              {(cities as any[]).map((city) => (
                                 <SelectItem key={city.id} value={city.id.toString()}>
                                   {city.name}
                                 </SelectItem>
@@ -288,7 +333,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {sources.map((source: any) => (
+                              {(sources as any[]).map((source) => (
                                 <SelectItem key={source.id} value={source.id.toString()}>
                                   {source.name}
                                 </SelectItem>
@@ -302,20 +347,20 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
                     <FormField
                       control={form.control}
-                      name="editorId"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Editör</FormLabel>
-                          <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                          <FormLabel className="text-sm font-medium">Durum</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger className="h-11">
-                                <SelectValue placeholder="Editör seçin" />
+                                <SelectValue placeholder="Durum seçin" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="1">Editör 1</SelectItem>
-                              <SelectItem value="2">Editör 2</SelectItem>
-                              <SelectItem value="3">Editör 3</SelectItem>
+                              <SelectItem value="draft">Taslak</SelectItem>
+                              <SelectItem value="review">İnceleme</SelectItem>
+                              <SelectItem value="published">Yayınlandı</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -358,17 +403,18 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                     
                     <FormField
                       control={form.control}
-                      name="images"
+                      name="featuredImage"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Görseller</FormLabel>
+                          <FormLabel className="text-sm font-medium">Öne Çıkan Görsel</FormLabel>
                           <FormControl>
                             <FileUpload
-                              accept="image/*"
-                              multiple
-                              value={field.value || []}
+                              value={field.value || ''}
                               onChange={field.onChange}
-                              className="h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg"
+                              accept={{
+                                'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+                              }}
+                              maxSize={5 * 1024 * 1024} // 5MB
                             />
                           </FormControl>
                           <FormMessage />
@@ -380,11 +426,17 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                       <FormField
                         control={form.control}
                         name="videoUrl"
-                        render={({ field }) => (
+                        render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
                             <FormLabel className="text-sm font-medium">Video URL</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://youtube.com/..." {...field} className="h-11" />
+                              <Input 
+                                placeholder="https://..." 
+                                value={value || ''}
+                                onChange={onChange}
+                                {...field}
+                                className="h-11" 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -394,11 +446,17 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                       <FormField
                         control={form.control}
                         name="videoThumbnail"
-                        render={({ field }) => (
+                        render={({ field: { value, onChange, ...field } }) => (
                           <FormItem>
                             <FormLabel className="text-sm font-medium">Video Thumbnail URL</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://..." {...field} className="h-11" />
+                              <Input 
+                                placeholder="https://..." 
+                                value={value || ''}
+                                onChange={onChange}
+                                {...field}
+                                className="h-11" 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -416,11 +474,17 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                     <FormField
                       control={form.control}
                       name="metaTitle"
-                      render={({ field }) => (
+                      render={({ field: { value, onChange, ...field } }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Meta Başlık</FormLabel>
                           <FormControl>
-                            <Input placeholder="SEO başlığı..." {...field} className="h-11" />
+                            <Input 
+                              placeholder="SEO başlığı..." 
+                              value={value || ''}
+                              onChange={onChange}
+                              {...field}
+                              className="h-11" 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -430,13 +494,15 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                     <FormField
                       control={form.control}
                       name="metaDescription"
-                      render={({ field }) => (
+                      render={({ field: { value, onChange, ...field } }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Meta Açıklama</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder="SEO açıklaması..."
-                              className="min-h-[60px] resize-none"
+                              className="min-h-[80px] resize-none"
+                              value={value || ''}
+                              onChange={onChange}
                               {...field}
                             />
                           </FormControl>
@@ -447,19 +513,16 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
                     <FormField
                       control={form.control}
-                      name="tags"
+                      name="keywords"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Etiketler</FormLabel>
+                          <FormLabel className="text-sm font-medium">Anahtar Kelimeler</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="etiket1, etiket2, etiket3" 
+                            <Input
+                              placeholder="anahtar1, anahtar2, anahtar3..."
+                              {...field}
+                              value={field.value || ''}
                               className="h-11"
-                              value={field.value?.join(', ') || ''}
-                              onChange={(e) => {
-                                const tags = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-                                field.onChange(tags);
-                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -468,47 +531,48 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                     />
                   </CardContent>
                 </Card>
+              </div>
 
-                {/* Action Buttons */}
-                <div className="bg-background border-t px-4 py-3 sm:px-6 mt-6">
-                  <div className="flex flex-row justify-between sm:justify-end gap-2 sm:gap-3 max-w-4xl mx-auto">
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      onClick={onClose} 
-                      className="flex-shrink-0 w-12 h-12 p-0 text-muted-foreground sm:order-last"
-                    >
-                      ×
-                    </Button>
-                    <div className="flex flex-row gap-2 sm:gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={saveAsDraft}
-                        disabled={createNewsMutation.isPending}
-                        className="flex-1 sm:flex-none sm:w-auto h-12 text-sm sm:text-base"
-                      >
-                        {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Taslak'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={submitForReview}
-                        disabled={createNewsMutation.isPending}
-                        className="flex-1 sm:flex-none sm:w-auto h-12 text-sm sm:text-base"
-                      >
-                        {createNewsMutation.isPending ? 'Kaydediliyor...' : 'İnceleme'}
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={publish}
-                        disabled={createNewsMutation.isPending}
-                        className="flex-1 sm:flex-none sm:w-auto h-12 text-sm sm:text-base font-semibold"
-                      >
-                        {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
-                      </Button>
-                    </div>
-                  </div>
+              {/* Action Buttons */}
+              <div className="sticky bottom-0 bg-background border-t p-4 sm:p-6 mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  className="order-3 sm:order-1 h-11"
+                >
+                  İptal
+                </Button>
+                
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:ml-auto order-1 sm:order-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={saveAsDraft}
+                    disabled={createNewsMutation.isPending}
+                    className="h-11"
+                  >
+                    Taslak Kaydet
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={submitForReview}
+                    disabled={createNewsMutation.isPending}
+                    className="h-11"
+                  >
+                    İncelemeye Gönder
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    onClick={publish}
+                    disabled={createNewsMutation.isPending}
+                    className="h-11"
+                  >
+                    {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
+                  </Button>
                 </div>
               </div>
             </form>
