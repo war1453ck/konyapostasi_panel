@@ -2102,10 +2102,9 @@ export class DatabaseStorage implements IStorage {
 
   async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
     try {
-      let query = db.select().from(digitalMagazines);
+      const conditions: any[] = [];
       
       if (filters) {
-        const conditions: any[] = [];
         if (filters.isPublished !== undefined) {
           conditions.push(eq(digitalMagazines.isPublished, filters.isPublished));
         }
@@ -2115,13 +2114,15 @@ export class DatabaseStorage implements IStorage {
         if (filters.isFeatured !== undefined) {
           conditions.push(eq(digitalMagazines.isFeatured, filters.isFeatured));
         }
-        
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
       }
       
-      const result = await query.orderBy(desc(digitalMagazines.publishDate));
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+      
+      const result = await db.select()
+        .from(digitalMagazines)
+        .where(whereClause)
+        .orderBy(desc(digitalMagazines.publishDate));
+      
       return result;
     } catch (error) {
       console.error('Error fetching digital magazines:', error);
