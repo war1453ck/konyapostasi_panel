@@ -324,6 +324,7 @@ export type Category = typeof categories.$inferSelect;
 
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 export type News = typeof news.$inferSelect;
+export type SelectNews = typeof news.$inferSelect;
 
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
 export type Article = typeof articles.$inferSelect;

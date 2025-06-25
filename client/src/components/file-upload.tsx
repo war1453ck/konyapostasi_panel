@@ -11,7 +11,7 @@ interface FileUploadProps {
 
 export function FileUpload({ 
   onFileUpload, 
-  accept = { 'image/*': [] }, 
+  accept = { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] }, 
   maxFiles = 1, 
   className 
 }: FileUploadProps) {

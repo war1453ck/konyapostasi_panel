@@ -243,10 +243,10 @@ export default function MediaLibrary() {
             <FileUpload
               onFileUpload={handleFileUpload}
               accept={{
-                'image/*': [],
-                'video/*': [],
-                'application/pdf': [],
-                'text/*': []
+                'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'],
+                'video/*': ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'],
+                'application/pdf': ['.pdf'],
+                'text/*': ['.txt', '.doc', '.docx']
               }}
               maxFiles={10}
             />

@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { insertNewsSchema, type InsertNews, type SelectNews } from '@/../../shared/schema';
+import { insertNewsSchema, type InsertNews, type News } from '@/../../shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { RichTextEditor } from '@/components/rich-text-editor';
@@ -37,7 +37,7 @@ import { FileUpload } from '@/components/file-upload';
 interface NewsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  news?: SelectNews;
+  news?: News;
 }
 
 type FormData = InsertNews;
@@ -57,18 +57,16 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       content: news?.content || '',
       categoryId: news?.categoryId || undefined,
       status: news?.status || 'draft',
-      featured: news?.featured || false,
-      tags: news?.tags || [],
+      featuredImage: news?.featuredImage || '',
       metaTitle: news?.metaTitle || '',
       metaDescription: news?.metaDescription || '',
       authorId: news?.authorId || 1,
-      publishedAt: news?.publishedAt || null,
+      keywords: news?.keywords || '',
       cityId: news?.cityId || undefined,
       sourceId: news?.sourceId || undefined,
       editorId: news?.editorId || undefined,
       videoUrl: news?.videoUrl || '',
       videoThumbnail: news?.videoThumbnail || '',
-      images: news?.images || [],
     },
   });
 
@@ -91,13 +89,10 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
   });
 
   const createNewsMutation = useMutation({
-    mutationFn: async (data: FormData) => {
+    mutationFn: async (data: InsertNews) => {
       const url = news ? `/api/news/${news.id}` : '/api/news';
       const method = news ? 'PATCH' : 'POST';
-      return apiRequest(url, {
-        method,
-        body: JSON.stringify(data),
-      });
+      return apiRequest(method, url, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/news'] });
@@ -116,7 +111,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: InsertNews) => {
     console.log('Form verisi:', data);
     createNewsMutation.mutate(data);
   };
