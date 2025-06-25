@@ -181,6 +181,31 @@ export const insertMediaSchema = createInsertSchema(media).omit({
   createdAt: true,
 });
 
+// Newspaper Pages Table
+export const newspaperPages = pgTable('newspaper_pages', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  pageNumber: integer('page_number').notNull(),
+  issueDate: timestamp('issue_date').notNull(),
+  imageUrl: varchar('image_url', { length: 500 }).notNull(),
+  pdfUrl: varchar('pdf_url', { length: 500 }),
+  description: text('description'),
+  isActive: boolean('is_active').default(true),
+  publisherId: integer('publisher_id').notNull().default(1),
+  edition: varchar('edition', { length: 100 }),
+  language: varchar('language', { length: 10 }).default('tr'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export type NewspaperPage = typeof newspaperPages.$inferSelect;
+export type InsertNewspaperPage = typeof newspaperPages.$inferInsert;
+export const insertNewspaperPageSchema = createInsertSchema(newspaperPages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertAdvertisementSchema = createInsertSchema(advertisements).omit({
   id: true,
   createdAt: true,

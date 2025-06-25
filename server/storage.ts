@@ -1,5 +1,5 @@
 import { 
-  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds,
+  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds, newspaperPages,
   type User, type InsertUser,
   type Category, type InsertCategory, type CategoryWithChildren,
   type City, type InsertCity,
@@ -9,6 +9,7 @@ import {
   type Media, type InsertMedia,
   type Advertisement, type InsertAdvertisement, type AdvertisementWithCreator,
   type ClassifiedAd, type InsertClassifiedAd, type ClassifiedAdWithApprover,
+  type NewspaperPage, type InsertNewspaperPage,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, and, or, desc, sql } from "drizzle-orm";
@@ -329,12 +330,15 @@ export class MemStorage implements IStorage {
     // Sample newspaper pages
     const page1: NewspaperPage = {
       id: this.currentNewspaperPageId++,
-      title: 'Yerel Gazete - Sayfa 1',
+      title: 'Yerel Gazete - Birinci Sayfa',
       pageNumber: 1,
       issueDate: new Date('2025-06-25'),
       imageUrl: 'https://via.placeholder.com/600x800/f0f0f0/333?text=Sayfa+1',
-      pdfUrl: '',
-      description: 'Bugünün ana haberleri',
+      pdfUrl: null,
+      description: 'Bugünün ana haberleri ve önemli gelişmeler',
+      edition: 'Sayı 145',
+      language: 'tr',
+      publisherId: 1,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -342,12 +346,15 @@ export class MemStorage implements IStorage {
 
     const page2: NewspaperPage = {
       id: this.currentNewspaperPageId++,
-      title: 'Yerel Gazete - Sayfa 2',
+      title: 'Yerel Gazete - İkinci Sayfa',
       pageNumber: 2,
       issueDate: new Date('2025-06-25'),
       imageUrl: 'https://via.placeholder.com/600x800/f8f8f8/555?text=Sayfa+2',
-      pdfUrl: '',
-      description: 'Spor haberleri ve yerel etkinlikler',
+      pdfUrl: null,
+      description: 'Spor haberleri, yerel etkinlikler ve kültür sanat',
+      edition: 'Sayı 145',
+      language: 'tr',
+      publisherId: 1,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),

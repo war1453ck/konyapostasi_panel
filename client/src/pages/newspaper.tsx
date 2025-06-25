@@ -34,9 +34,11 @@ const newspaperPageSchema = z.object({
   title: z.string().min(1, 'Başlık gereklidir'),
   pageNumber: z.number().min(1, 'Sayfa numarası 1 veya daha büyük olmalıdır'),
   issueDate: z.string().min(1, 'Yayın tarihi gereklidir'),
-  imageUrl: z.string().url('Geçerli bir URL giriniz'),
-  pdfUrl: z.string().url('Geçerli bir URL giriniz').optional().or(z.literal('')),
+  imageUrl: z.string().min(1, 'Sayfa görseli gereklidir'),
+  pdfUrl: z.string().optional().or(z.literal('')),
   description: z.string().optional(),
+  edition: z.string().optional(),
+  language: z.string().default('tr'),
   isActive: z.boolean().default(true),
 });
 
@@ -50,6 +52,8 @@ export default function Newspaper() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState<NewspaperPage | null>(null);
   const [viewerMode, setViewerMode] = useState<'grid' | 'viewer'>('grid');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -63,6 +67,8 @@ export default function Newspaper() {
       imageUrl: '',
       pdfUrl: '',
       description: '',
+      edition: '',
+      language: 'tr',
       isActive: true,
     },
   });
@@ -157,9 +163,77 @@ export default function Newspaper() {
       imageUrl: page.imageUrl,
       pdfUrl: page.pdfUrl || '',
       description: page.description || '',
+      edition: page.edition || '',
+      language: page.language || 'tr',
       isActive: page.isActive,
     });
     setIsModalOpen(true);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload/newspaper-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Dosya yüklenemedi');
+      }
+
+      const result = await response.json();
+      form.setValue('imageUrl', result.url);
+      
+      toast({
+        title: 'Başarılı',
+        description: 'Görsel başarıyla yüklendi',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Görsel yüklenirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handlePdfUpload = async (file: File) => {
+    setUploadingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file);
+
+      const response = await fetch('/api/upload/newspaper-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('PDF yüklenemedi');
+      }
+
+      const result = await response.json();
+      form.setValue('pdfUrl', result.url);
+      
+      toast({
+        title: 'Başarılı',
+        description: 'PDF başarıyla yüklendi',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Hata',
+        description: error.message || 'PDF yüklenirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingPdf(false);
+    }
   };
 
   const handleDeletePage = (id: number) => {
@@ -305,9 +379,16 @@ export default function Newspaper() {
               </div>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-2 line-clamp-2">{page.title}</h3>
-                <p className="text-sm text-muted-foreground mb-2">
-                  {formatDate(page.issueDate)}
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(page.issueDate)}
+                  </p>
+                  {page.edition && (
+                    <Badge variant="outline" className="text-xs">
+                      {page.edition}
+                    </Badge>
+                  )}
+                </div>
                 {page.description && (
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                     {page.description}
@@ -318,10 +399,15 @@ export default function Newspaper() {
                     {page.pdfUrl && (
                       <Button variant="outline" size="sm" asChild>
                         <a href={page.pdfUrl} target="_blank" rel="noopener noreferrer">
-                          <LucideIcons.Download className="w-3 h-3" />
+                          <LucideIcons.Download className="w-3 h-3 mr-1" />
+                          PDF
                         </a>
                       </Button>
                     )}
+                    <Button variant="outline" size="sm" onClick={() => window.open(page.imageUrl, '_blank')}>
+                      <LucideIcons.Eye className="w-3 h-3 mr-1" />
+                      Görüntüle
+                    </Button>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -369,9 +455,16 @@ export default function Newspaper() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">{page.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(page.issueDate)}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(page.issueDate)}
+                    </p>
+                    {page.edition && (
+                      <Badge variant="outline" className="text-xs">
+                        {page.edition}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -437,35 +530,161 @@ export default function Newspaper() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="edition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Baskı/Sayı</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Örn: Sayı 145, Özel Baskı..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
-              <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sayfa Görseli URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sayfa Görseli</FormLabel>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                          <Input
+                            placeholder="Görsel dosyası yükleyin veya URL girin..."
+                            {...field}
+                            className="flex-1"
+                          />
+                          <label htmlFor="image-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={uploadingImage}
+                              className="cursor-pointer"
+                              asChild
+                            >
+                              <span>
+                                {uploadingImage ? (
+                                  <>
+                                    <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Yükleniyor...
+                                  </>
+                                ) : (
+                                  <>
+                                    <LucideIcons.Upload className="w-4 h-4 mr-2" />
+                                    Dosya Seç
+                                  </>
+                                )}
+                              </span>
+                            </Button>
+                          </label>
+                          <input
+                            id="image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file);
+                            }}
+                          />
+                        </div>
+                        {field.value && (
+                          <div className="relative w-32 h-40 border rounded-lg overflow-hidden">
+                            <img
+                              src={field.value}
+                              alt="Önizleme"
+                              className="w-full h-full object-cover"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-1 right-1 w-6 h-6 p-0"
+                              onClick={() => field.onChange('')}
+                            >
+                              <LucideIcons.X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="pdfUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>PDF URL (İsteğe Bağlı)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="pdfUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>PDF Dosyası (İsteğe Bağlı)</FormLabel>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                          <Input
+                            placeholder="PDF dosyası yükleyin veya URL girin..."
+                            {...field}
+                            className="flex-1"
+                          />
+                          <label htmlFor="pdf-upload">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={uploadingPdf}
+                              className="cursor-pointer"
+                              asChild
+                            >
+                              <span>
+                                {uploadingPdf ? (
+                                  <>
+                                    <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Yükleniyor...
+                                  </>
+                                ) : (
+                                  <>
+                                    <LucideIcons.FileText className="w-4 h-4 mr-2" />
+                                    PDF Seç
+                                  </>
+                                )}
+                              </span>
+                            </Button>
+                          </label>
+                          <input
+                            id="pdf-upload"
+                            type="file"
+                            accept=".pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handlePdfUpload(file);
+                            }}
+                          />
+                        </div>
+                        {field.value && (
+                          <div className="flex items-center space-x-2 p-2 bg-muted rounded">
+                            <LucideIcons.FileText className="w-4 h-4" />
+                            <span className="text-sm flex-1">PDF yüklendi</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => field.onChange('')}
+                            >
+                              <LucideIcons.X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
@@ -489,7 +708,7 @@ export default function Newspaper() {
                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                   İptal
                 </Button>
-                <Button type="submit" disabled={createPageMutation.isPending}>
+                <Button type="submit" disabled={createPageMutation.isPending || uploadingImage || uploadingPdf}>
                   {createPageMutation.isPending ? 'Kaydediliyor...' : 'Kaydet'}
                 </Button>
               </div>
