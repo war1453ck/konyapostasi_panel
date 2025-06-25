@@ -1,10 +1,14 @@
 import { 
-  users, categories, news, comments, media,
+  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds,
   type User, type InsertUser,
   type Category, type InsertCategory, type CategoryWithChildren,
+  type City, type InsertCity,
   type News, type InsertNews, type NewsWithDetails,
+  type Article, type InsertArticle, type ArticleWithDetails,
   type Comment, type InsertComment, type CommentWithNews,
-  type Media, type InsertMedia
+  type Media, type InsertMedia,
+  type Advertisement, type InsertAdvertisement, type AdvertisementWithCreator,
+  type ClassifiedAd, type InsertClassifiedAd, type ClassifiedAdWithApprover,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, and, or, desc, sql } from "drizzle-orm";
@@ -783,6 +787,7 @@ export class MemStorage implements IStorage {
     const ad: Advertisement = {
       id: ++this.currentAdvertisementId,
       ...insertAd,
+      isActive: insertAd.isActive ?? true,
       clickCount: 0,
       impressions: 0,
       createdAt: new Date(),
@@ -878,7 +883,10 @@ export class MemStorage implements IStorage {
     const ad: ClassifiedAd = {
       id: ++this.currentClassifiedAdId,
       ...insertAd,
+      status: insertAd.status || "pending",
       viewCount: 0,
+      approvedBy: null,
+      approvedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

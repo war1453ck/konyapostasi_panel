@@ -79,6 +79,18 @@ export const MENU_ITEMS = [
     key: 'comments'
   },
   {
+    label: 'Reklamlar',
+    icon: 'Megaphone',
+    path: '/advertisements',
+    key: 'advertisements'
+  },
+  {
+    label: 'İlanlar',
+    icon: 'ShoppingBag',
+    path: '/classified-ads',
+    key: 'classified-ads'
+  },
+  {
     label: 'SEO Araçları',
     icon: 'Search',
     path: '/seo',

@@ -29,11 +29,11 @@ function Router() {
         <Route path="/news/new" component={NewsForm} />
         <Route path="/articles" component={Articles} />
         <Route path="/categories" component={Categories} />
-        <Route path="/advertisements" component={Advertisements} />
-        <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/users" component={Users} />
         <Route path="/media" component={Media} />
         <Route path="/comments" component={Comments} />
+        <Route path="/advertisements" component={Advertisements} />
+        <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/seo" component={SEO} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/settings" component={Settings} />
