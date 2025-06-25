@@ -96,6 +96,15 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     }
   });
 
+  const { data: sources = [] } = useQuery({
+    queryKey: ['/api/sources/active'],
+    queryFn: async () => {
+      const response = await fetch('/api/sources/active', { credentials: 'include' });
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+
   useEffect(() => {
     if (news) {
       form.reset({
