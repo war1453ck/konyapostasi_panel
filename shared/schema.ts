@@ -186,6 +186,8 @@ export const insertNewsSchema = createInsertSchema(news).omit({
   slug: z.string().optional(),
   authorId: z.number().optional(),
   sourceId: z.number().optional().nullable(),
+  publishedAt: z.date().optional().nullable(),
+  scheduledAt: z.date().optional().nullable(),
 });
 
 export const insertArticleSchema = createInsertSchema(articles).omit({

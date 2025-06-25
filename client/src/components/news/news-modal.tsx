@@ -63,6 +63,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       editorId: null,
       videoUrl: null,
       videoThumbnail: null,
+      slug: '',
     },
   });
 
