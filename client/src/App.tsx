@@ -36,7 +36,7 @@ function Router() {
         <Route path="/media" component={Media} />
         <Route path="/comments" component={Comments} />
         <Route path="/newspaper" component={Newspaper} />
-        <Route path="/digital-magazine" component={lazy(() => import('./pages/digital-magazine'))} />
+        <Route path="/digital-magazine" component={lazy(() => import('./pages/digital-magazine').then(m => ({ default: m.default })))} />
         <Route path="/advertisements" component={Advertisements} />
         <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/seo" component={SEO} />

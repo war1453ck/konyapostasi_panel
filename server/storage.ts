@@ -1124,6 +1124,12 @@ export class MemStorage implements IStorage {
     const page: NewspaperPage = { 
       id: this.currentNewspaperPageId++,
       ...insertPage,
+      isActive: insertPage.isActive ?? true,
+      description: insertPage.description ?? null,
+      pdfUrl: insertPage.pdfUrl ?? null,
+      edition: insertPage.edition ?? null,
+      language: insertPage.language ?? 'tr',
+      publisherId: insertPage.publisherId ?? 1,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1157,6 +1163,16 @@ export class MemStorage implements IStorage {
     const magazine: DigitalMagazine = { 
       id: this.currentDigitalMagazineId++,
       ...insertMagazine,
+      description: insertMagazine.description ?? null,
+      category: insertMagazine.category ?? null,
+      pdfUrl: insertMagazine.pdfUrl ?? null,
+      isPublished: insertMagazine.isPublished ?? false,
+      isFeatured: insertMagazine.isFeatured ?? false,
+      tags: insertMagazine.tags ?? null,
+      language: insertMagazine.language ?? 'tr',
+      price: insertMagazine.price ?? '0.00',
+      publisherId: insertMagazine.publisherId ?? 1,
+      volume: insertMagazine.volume ?? null,
       downloadCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -2009,12 +2025,117 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementClassifiedAdViews(id: number): Promise<void> {
-    await db
+    await this.db
       .update(classifiedAds)
       .set({
         viewCount: sql`${classifiedAds.viewCount} + 1`,
       })
       .where(eq(classifiedAds.id, id));
+  }
+
+  // Newspaper Pages methods
+  async getNewspaperPage(id: number): Promise<NewspaperPage | undefined> {
+    const [page] = await this.db
+      .select()
+      .from(newspaperPages)
+      .where(eq(newspaperPages.id, id));
+    return page;
+  }
+
+  async createNewspaperPage(insertPage: InsertNewspaperPage): Promise<NewspaperPage> {
+    const [page] = await this.db
+      .insert(newspaperPages)
+      .values(insertPage)
+      .returning();
+    return page;
+  }
+
+  async updateNewspaperPage(id: number, pageUpdate: Partial<InsertNewspaperPage>): Promise<NewspaperPage | undefined> {
+    const [page] = await this.db
+      .update(newspaperPages)
+      .set({ ...pageUpdate, updatedAt: new Date() })
+      .where(eq(newspaperPages.id, id))
+      .returning();
+    return page;
+  }
+
+  async getAllNewspaperPages(): Promise<NewspaperPage[]> {
+    return await this.db
+      .select()
+      .from(newspaperPages)
+      .orderBy(desc(newspaperPages.issueDate));
+  }
+
+  async deleteNewspaperPage(id: number): Promise<boolean> {
+    const result = await this.db
+      .delete(newspaperPages)
+      .where(eq(newspaperPages.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Digital Magazines methods
+  async getDigitalMagazine(id: number): Promise<DigitalMagazine | undefined> {
+    const [magazine] = await this.db
+      .select()
+      .from(digitalMagazines)
+      .where(eq(digitalMagazines.id, id));
+    return magazine;
+  }
+
+  async createDigitalMagazine(insertMagazine: InsertDigitalMagazine): Promise<DigitalMagazine> {
+    const [magazine] = await this.db
+      .insert(digitalMagazines)
+      .values(insertMagazine)
+      .returning();
+    return magazine;
+  }
+
+  async updateDigitalMagazine(id: number, magazineUpdate: Partial<InsertDigitalMagazine>): Promise<DigitalMagazine | undefined> {
+    const [magazine] = await this.db
+      .update(digitalMagazines)
+      .set({ ...magazineUpdate, updatedAt: new Date() })
+      .where(eq(digitalMagazines.id, id))
+      .returning();
+    return magazine;
+  }
+
+  async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
+    let query = this.db.select().from(digitalMagazines);
+    
+    if (filters) {
+      const conditions: any[] = [];
+      if (filters.isPublished !== undefined) {
+        conditions.push(eq(digitalMagazines.isPublished, filters.isPublished));
+      }
+      if (filters.category) {
+        conditions.push(eq(digitalMagazines.category, filters.category));
+      }
+      if (filters.isFeatured !== undefined) {
+        conditions.push(eq(digitalMagazines.isFeatured, filters.isFeatured));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query.orderBy(desc(digitalMagazines.publishDate));
+  }
+
+  async deleteDigitalMagazine(id: number): Promise<boolean> {
+    const result = await this.db
+      .delete(digitalMagazines)
+      .where(eq(digitalMagazines.id, id));
+    return result.rowCount > 0;
+  }
+
+  async incrementDownloadCount(id: number): Promise<void> {
+    await this.db
+      .update(digitalMagazines)
+      .set({ 
+        downloadCount: sql`${digitalMagazines.downloadCount} + 1`
+      })
+      .where(eq(digitalMagazines.id, id));
   }
 }
 

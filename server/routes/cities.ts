@@ -80,4 +80,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export { router as citiesRouter };
+export default router;
