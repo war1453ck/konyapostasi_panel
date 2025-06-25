@@ -19,52 +19,120 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import type { NewsWithDetails } from '@shared/schema';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { NewspaperPage, InsertNewspaperPage } from '@shared/schema';
+
+const newspaperPageSchema = z.object({
+  title: z.string().min(1, 'Başlık gereklidir'),
+  pageNumber: z.number().min(1, 'Sayfa numarası 1 veya daha büyük olmalıdır'),
+  issueDate: z.string().min(1, 'Yayın tarihi gereklidir'),
+  imageUrl: z.string().url('Geçerli bir URL giriniz'),
+  pdfUrl: z.string().url('Geçerli bir URL giriniz').optional().or(z.literal('')),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+type NewspaperPageFormData = z.infer<typeof newspaperPageSchema>;
 
 export default function Newspaper() {
   const [filters, setFilters] = useState({
     search: '',
-    city: 'all',
-    category: 'all',
     date: ''
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPage, setSelectedPage] = useState<NewspaperPage | null>(null);
+  const [viewerMode, setViewerMode] = useState<'grid' | 'viewer'>('grid');
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: news = [], isLoading } = useQuery<NewsWithDetails[]>({
-    queryKey: ['/api/news'],
+  const form = useForm<NewspaperPageFormData>({
+    resolver: zodResolver(newspaperPageSchema),
+    defaultValues: {
+      title: '',
+      pageNumber: 1,
+      issueDate: new Date().toISOString().split('T')[0],
+      imageUrl: '',
+      pdfUrl: '',
+      description: '',
+      isActive: true,
+    },
   });
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['/api/categories'],
+  const { data: pages = [], isLoading } = useQuery<NewspaperPage[]>({
+    queryKey: ['/api/newspaper-pages'],
+    queryFn: async () => {
+      const response = await fetch('/api/newspaper-pages');
+      if (!response.ok) throw new Error('Gazete sayfaları yüklenemedi');
+      return response.json();
+    }
   });
 
-  const { data: cities = [] } = useQuery({
-    queryKey: ['/api/cities'],
+  const createPageMutation = useMutation({
+    mutationFn: async (data: NewspaperPageFormData) => {
+      return apiRequest('/api/newspaper-pages', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          issueDate: new Date(data.issueDate).toISOString(),
+        }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/newspaper-pages'] });
+      setIsModalOpen(false);
+      form.reset();
+      toast({
+        title: 'Başarılı',
+        description: 'Gazete sayfası başarıyla eklendi',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Gazete sayfası eklenirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    },
   });
 
-  // Filter published news only for newspaper view
-  const publishedNews = news.filter(item => item.status === 'published');
+  const deletePageMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/newspaper-pages/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/newspaper-pages'] });
+      toast({
+        title: 'Başarılı',
+        description: 'Gazete sayfası başarıyla silindi',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Gazete sayfası silinirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    },
+  });
 
-  const filteredNews = publishedNews.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         item.summary?.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesCity = filters.city === 'all' || item.cityId?.toString() === filters.city;
-    const matchesCategory = filters.category === 'all' || item.categoryId?.toString() === filters.category;
-    const matchesDate = !filters.date || new Date(item.createdAt).toDateString() === new Date(filters.date).toDateString();
+  const filteredPages = pages.filter(page => {
+    const matchesSearch = page.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+                         page.description?.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesDate = !filters.date || new Date(page.issueDate).toDateString() === new Date(filters.date).toDateString();
     
-    return matchesSearch && matchesCity && matchesCategory && matchesDate;
+    return matchesSearch && matchesDate;
   });
-
-  // Group news by category for newspaper layout
-  const newsByCategory = categories.reduce((acc: any, category: any) => {
-    acc[category.name] = filteredNews.filter(item => item.categoryId === category.id);
-    return acc;
-  }, {});
 
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString('tr-TR', {
@@ -74,21 +142,34 @@ export default function Newspaper() {
     });
   };
 
-  const formatTime = (date: string | Date) => {
-    return new Date(date).toLocaleTimeString('tr-TR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const handleCreatePage = () => {
+    setSelectedPage(null);
+    form.reset();
+    setIsModalOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'review': return 'bg-yellow-100 text-yellow-800';
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleEditPage = (page: NewspaperPage) => {
+    setSelectedPage(page);
+    form.reset({
+      title: page.title,
+      pageNumber: page.pageNumber,
+      issueDate: new Date(page.issueDate).toISOString().split('T')[0],
+      imageUrl: page.imageUrl,
+      pdfUrl: page.pdfUrl || '',
+      description: page.description || '',
+      isActive: page.isActive,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDeletePage = (id: number) => {
+    if (confirm('Bu gazete sayfasını silmek istediğinizden emin misiniz?')) {
+      deletePageMutation.mutate(id);
     }
+  };
+
+  const onSubmit = (data: NewspaperPageFormData) => {
+    createPageMutation.mutate(data);
   };
 
   if (isLoading) {
@@ -107,16 +188,25 @@ export default function Newspaper() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dijital Gazete</h1>
-          <p className="text-muted-foreground">Yayınlanan haberlerin gazete görünümü</p>
+          <p className="text-muted-foreground">Yerel gazetenizin sayfalarını yönetin</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <LucideIcons.Download className="w-4 h-4 mr-2" />
-            PDF İndir
+          <Button variant="outline" onClick={() => setViewerMode(viewerMode === 'grid' ? 'viewer' : 'grid')}>
+            {viewerMode === 'grid' ? (
+              <>
+                <LucideIcons.BookOpen className="w-4 h-4 mr-2" />
+                Gazete Görünümü
+              </>
+            ) : (
+              <>
+                <LucideIcons.Grid className="w-4 h-4 mr-2" />
+                Liste Görünümü
+              </>
+            )}
           </Button>
-          <Button variant="outline">
-            <LucideIcons.Share className="w-4 h-4 mr-2" />
-            Paylaş
+          <Button onClick={handleCreatePage}>
+            <LucideIcons.Plus className="w-4 h-4 mr-2" />
+            Yeni Sayfa
           </Button>
         </div>
       </div>
@@ -125,23 +215,23 @@ export default function Newspaper() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Haber</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Sayfa</CardTitle>
             <LucideIcons.FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{publishedNews.length}</div>
+            <div className="text-2xl font-bold">{pages.length}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bugünkü Haberler</CardTitle>
+            <CardTitle className="text-sm font-medium">Bugünkü Sayfalar</CardTitle>
             <LucideIcons.Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {publishedNews.filter(item => 
-                new Date(item.createdAt).toDateString() === new Date().toDateString()
+              {pages.filter(page => 
+                new Date(page.issueDate).toDateString() === new Date().toDateString()
               ).length}
             </div>
           </CardContent>
@@ -149,21 +239,27 @@ export default function Newspaper() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Kategoriler</CardTitle>
-            <LucideIcons.Tags className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Bu Hafta</CardTitle>
+            <LucideIcons.Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
+            <div className="text-2xl font-bold">
+              {pages.filter(page => {
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return new Date(page.issueDate) >= weekAgo;
+              }).length}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Şehirler</CardTitle>
-            <LucideIcons.MapPin className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Aktif Sayfalar</CardTitle>
+            <LucideIcons.Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{cities.length}</div>
+            <div className="text-2xl font-bold">{pages.filter(page => page.isActive).length}</div>
           </CardContent>
         </Card>
       </div>
@@ -176,31 +272,11 @@ export default function Newspaper() {
         <CardContent>
           <div className="flex flex-wrap gap-4">
             <Input
-              placeholder="Haber ara..."
+              placeholder="Sayfa ara..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               className="w-64"
             />
-            <select 
-              value={filters.category}
-              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="all">Tüm Kategoriler</option>
-              {categories.map((cat: any) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-            <select 
-              value={filters.city}
-              onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="all">Tüm Şehirler</option>
-              {cities.map((city: any) => (
-                <option key={city.id} value={city.id}>{city.name}</option>
-              ))}
-            </select>
             <Input
               type="date"
               value={filters.date}
@@ -211,142 +287,216 @@ export default function Newspaper() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="layout" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="layout">Gazete Düzeni</TabsTrigger>
-          <TabsTrigger value="table">Tablo Görünümü</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="layout" className="space-y-6">
-          {/* Newspaper Layout */}
-          <div className="bg-white p-8 rounded-lg border shadow-sm">
-            {/* Newspaper Header */}
-            <div className="text-center border-b-2 border-black pb-4 mb-6">
-              <h1 className="text-4xl font-bold mb-2">DİJİTAL GAZETE</h1>
-              <p className="text-lg">{formatDate(new Date())}</p>
-            </div>
-
-            {/* Featured News */}
-            {filteredNews.length > 0 && (
-              <div className="mb-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="lg:col-span-2">
-                    <div className="border-l-4 border-red-500 pl-4">
-                      <h2 className="text-2xl font-bold mb-2">{filteredNews[0].title}</h2>
-                      <p className="text-muted-foreground mb-2">{filteredNews[0].summary}</p>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Badge variant="outline">{filteredNews[0].category?.name}</Badge>
-                        {filteredNews[0].city && <Badge variant="secondary">{filteredNews[0].city.name}</Badge>}
-                        <span>•</span>
-                        <span>{formatTime(filteredNews[0].createdAt)}</span>
-                      </div>
-                    </div>
-                  </div>
+      {viewerMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredPages.map((page) => (
+            <Card key={page.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="aspect-[3/4] relative">
+                <img
+                  src={page.imageUrl}
+                  alt={page.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2">
+                  <Badge variant="secondary">
+                    Sayfa {page.pageNumber}
+                  </Badge>
                 </div>
               </div>
-            )}
-
-            {/* News by Category */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Object.entries(newsByCategory).map(([categoryName, categoryNews]: [string, any]) => {
-                if (categoryNews.length === 0) return null;
-                
-                return (
-                  <div key={categoryName} className="space-y-4">
-                    <h3 className="text-xl font-bold border-b border-gray-300 pb-2">
-                      {categoryName}
-                    </h3>
-                    {categoryNews.slice(0, 5).map((item: NewsWithDetails) => (
-                      <div key={item.id} className="border-b border-gray-200 pb-3 last:border-b-0">
-                        <h4 className="font-semibold text-sm mb-1 leading-tight">
-                          {item.title}
-                        </h4>
-                        {item.summary && (
-                          <p className="text-xs text-muted-foreground mb-1 line-clamp-2">
-                            {item.summary}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {item.city && <span>{item.city.name}</span>}
-                          <span>•</span>
-                          <span>{formatTime(item.createdAt)}</span>
-                        </div>
-                      </div>
-                    ))}
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-2 line-clamp-2">{page.title}</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {formatDate(page.issueDate)}
+                </p>
+                {page.description && (
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                    {page.description}
+                  </p>
+                )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {page.pdfUrl && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={page.pdfUrl} target="_blank" rel="noopener noreferrer">
+                          <LucideIcons.Download className="w-3 h-3" />
+                        </a>
+                      </Button>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <LucideIcons.MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEditPage(page)}>
+                        <LucideIcons.Edit className="w-4 h-4 mr-2" />
+                        Düzenle
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeletePage(page.id)}>
+                        <LucideIcons.Trash className="w-4 h-4 mr-2" />
+                        Sil
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white p-8 rounded-lg border shadow-sm">
+          <div className="text-center border-b-2 border-black pb-4 mb-6">
+            <h1 className="text-4xl font-bold mb-2">YEREL GAZETE</h1>
+            <p className="text-lg">{formatDate(new Date())}</p>
           </div>
-        </TabsContent>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPages.slice(0, 6).map((page) => (
+              <div key={page.id} className="space-y-4">
+                <div className="aspect-[3/4] relative border rounded-lg overflow-hidden">
+                  <img
+                    src={page.imageUrl}
+                    alt={page.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-2 left-2">
+                    <Badge variant="secondary">
+                      Sayfa {page.pageNumber}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">{page.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(page.issueDate)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-        <TabsContent value="table">
-          {/* Table View */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Haber Listesi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Başlık</TableHead>
-                    <TableHead>Kategori</TableHead>
-                    <TableHead>Şehir</TableHead>
-                    <TableHead>Durum</TableHead>
-                    <TableHead>Tarih</TableHead>
-                    <TableHead>İşlemler</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredNews.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.title}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{item.category?.name}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {item.city ? (
-                          <Badge variant="secondary">{item.city.name}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(item.status)}>
-                          {item.status === 'published' ? 'Yayında' : 
-                           item.status === 'draft' ? 'Taslak' :
-                           item.status === 'review' ? 'İncelemede' : 'Programlı'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(item.createdAt)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <LucideIcons.MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <LucideIcons.Eye className="w-4 h-4 mr-2" />
-                              Görüntüle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <LucideIcons.Share className="w-4 h-4 mr-2" />
-                              Paylaş
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Page Creation/Edit Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPage ? 'Gazete Sayfasını Düzenle' : 'Yeni Gazete Sayfası'}
+            </DialogTitle>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Başlık</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Gazete sayfası başlığı..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pageNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sayfa Numarası</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="issueDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Yayın Tarihi</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sayfa Görseli URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="pdfUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>PDF URL (İsteğe Bağlı)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Açıklama (İsteğe Bağlı)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Bu sayfada neler var..."
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-3">
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                  İptal
+                </Button>
+                <Button type="submit" disabled={createPageMutation.isPending}>
+                  {createPageMutation.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

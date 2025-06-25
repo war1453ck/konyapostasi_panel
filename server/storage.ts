@@ -98,6 +98,13 @@ export interface IStorage {
     activeAds: number;
     pendingClassifieds: number;
   }>;
+
+  // Newspaper Pages
+  getNewspaperPage(id: number): Promise<NewspaperPage | undefined>;
+  createNewspaperPage(page: InsertNewspaperPage): Promise<NewspaperPage>;
+  updateNewspaperPage(id: number, page: Partial<InsertNewspaperPage>): Promise<NewspaperPage | undefined>;
+  getAllNewspaperPages(): Promise<NewspaperPage[]>;
+  deleteNewspaperPage(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -110,6 +117,7 @@ export class MemStorage implements IStorage {
   private media: Map<number, Media>;
   private advertisements: Map<number, Advertisement>;
   private classifiedAds: Map<number, ClassifiedAd>;
+  private newspaperPages: Map<number, NewspaperPage>;
   private currentUserId: number;
   private currentCategoryId: number;
   private currentCityId: number;
@@ -119,6 +127,7 @@ export class MemStorage implements IStorage {
   private currentMediaId: number;
   private currentAdvertisementId: number;
   private currentClassifiedAdId: number;
+  private currentNewspaperPageId: number;
 
   constructor() {
     this.users = new Map();
@@ -130,6 +139,7 @@ export class MemStorage implements IStorage {
     this.media = new Map();
     this.advertisements = new Map();
     this.classifiedAds = new Map();
+    this.newspaperPages = new Map();
     this.currentUserId = 1;
     this.currentCategoryId = 1;
     this.currentCityId = 1;
@@ -139,6 +149,7 @@ export class MemStorage implements IStorage {
     this.currentMediaId = 1;
     this.currentAdvertisementId = 1;
     this.currentClassifiedAdId = 1;
+    this.currentNewspaperPageId = 1;
 
     // Initialize with some default data
     this.initializeDefaultData();
@@ -314,6 +325,36 @@ export class MemStorage implements IStorage {
 
     this.classifiedAds.set(carAd.id, carAd);
     this.classifiedAds.set(houseAd.id, houseAd);
+
+    // Sample newspaper pages
+    const page1: NewspaperPage = {
+      id: this.currentNewspaperPageId++,
+      title: 'Yerel Gazete - Sayfa 1',
+      pageNumber: 1,
+      issueDate: new Date('2025-06-25'),
+      imageUrl: 'https://via.placeholder.com/600x800/f0f0f0/333?text=Sayfa+1',
+      pdfUrl: '',
+      description: 'Bugünün ana haberleri',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const page2: NewspaperPage = {
+      id: this.currentNewspaperPageId++,
+      title: 'Yerel Gazete - Sayfa 2',
+      pageNumber: 2,
+      issueDate: new Date('2025-06-25'),
+      imageUrl: 'https://via.placeholder.com/600x800/f8f8f8/555?text=Sayfa+2',
+      pdfUrl: '',
+      description: 'Spor haberleri ve yerel etkinlikler',
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.newspaperPages.set(page1.id, page1);
+    this.newspaperPages.set(page2.id, page2);
   }
 
   // Users
