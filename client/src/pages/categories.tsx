@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -192,65 +193,133 @@ export default function Categories() {
           <CardTitle>Kategori Listesi</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table className="responsive-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Kategori Adı</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Açıklama</TableHead>
-                <TableHead>Haber Sayısı</TableHead>
-                <TableHead>İşlemler</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.length === 0 ? (
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <div className="text-muted-foreground">
-                      <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      Henüz kategori bulunmuyor
-                    </div>
-                  </TableCell>
+                  <TableHead>Kategori Adı</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Açıklama</TableHead>
+                  <TableHead>Haber Sayısı</TableHead>
+                  <TableHead>İşlemler</TableHead>
                 </TableRow>
-              ) : (
-                categories.map((category) => (
-                  <TableRow key={category.id}>
-                    <TableCell className="font-medium">{category.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{category.slug}</TableCell>
-                    <TableCell className="text-sm">
-                      {category.description?.substring(0, 50)}
-                      {category.description && category.description.length > 50 && '...'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <LucideIcons.FileText className="w-4 h-4 mr-1" />
-                        {category.newsCount || 0}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditCategory(category)}
-                        >
-                          <LucideIcons.Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteCategoryMutation.mutate(category.id)}
-                          disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
-                        >
-                          <LucideIcons.Trash className="w-4 h-4" />
-                        </Button>
+              </TableHeader>
+              <TableBody>
+                {categories.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        Henüz kategori bulunmuyor
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  categories.map((category) => (
+                    <TableRow key={category.id}>
+                      <TableCell className="font-medium">{category.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{category.slug}</TableCell>
+                      <TableCell className="text-sm">
+                        {category.description?.substring(0, 50)}
+                        {category.description && category.description.length > 50 && '...'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <LucideIcons.FileText className="w-4 h-4 mr-1" />
+                          {category.newsCount || 0}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditCategory(category)}
+                          >
+                            <LucideIcons.Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteCategoryMutation.mutate(category.id)}
+                            disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
+                          >
+                            <LucideIcons.Trash className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="block lg:hidden space-y-3">
+            {categories.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-muted-foreground">
+                  <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  Henüz kategori bulunmuyor
+                </div>
+              </div>
+            ) : (
+              categories.map((category) => (
+                <Card key={category.id} className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-base truncate">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        /{category.slug}
+                      </p>
+                    </div>
+                    <div className="flex space-x-1 ml-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditCategory(category)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <LucideIcons.Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteCategoryMutation.mutate(category.id)}
+                        disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
+                        className="h-8 w-8 p-0"
+                      >
+                        <LucideIcons.Trash className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {category.description && (
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                      {category.description}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <LucideIcons.FileText className="w-4 h-4 mr-1" />
+                      <span>{category.newsCount || 0} haber</span>
+                    </div>
+                    
+                    {category.parentId && (
+                      <Badge variant="outline" className="text-xs">
+                        Alt Kategori
+                      </Badge>
+                    )}
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 

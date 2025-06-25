@@ -225,78 +225,154 @@ export default function Users() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table className="responsive-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Kullanıcı</TableHead>
-                <TableHead>E-posta</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Durum</TableHead>
-                <TableHead>Kayıt Tarihi</TableHead>
-                <TableHead>İşlemler</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.length === 0 ? (
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    <div className="text-muted-foreground">
-                      <LucideIcons.Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      {searchQuery ? 'Arama kriterine uygun kullanıcı bulunamadı' : 'Henüz kullanıcı bulunmuyor'}
-                    </div>
-                  </TableCell>
+                  <TableHead>Kullanıcı</TableHead>
+                  <TableHead>E-posta</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead>Kayıt Tarihi</TableHead>
+                  <TableHead>İşlemler</TableHead>
                 </TableRow>
-              ) : (
-                filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center mr-3">
-                          <span className="text-sm font-medium text-white">
-                            {user.firstName[0]}{user.lastName[0]}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium">{user.firstName} {user.lastName}</p>
-                          <p className="text-sm text-muted-foreground">@{user.username}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.isActive ? 'default' : 'secondary'}>
-                        <LucideIcons.Circle className={`w-2 h-2 mr-1 ${user.isActive ? 'text-green-500' : 'text-gray-500'}`} />
-                        {user.isActive ? 'Aktif' : 'Pasif'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(user.createdAt).toLocaleDateString('tr-TR')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditUser(user)}
-                        >
-                          <LucideIcons.Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteUserMutation.mutate(user.id)}
-                          disabled={deleteUserMutation.isPending || user.role === 'admin'}
-                        >
-                          <LucideIcons.Trash className="w-4 h-4" />
-                        </Button>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <div className="text-muted-foreground">
+                        <LucideIcons.Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        {searchQuery ? 'Arama kriterine uygun kullanıcı bulunamadı' : 'Henüz kullanıcı bulunmuyor'}
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center mr-3">
+                            <span className="text-sm font-medium text-white">
+                              {user.firstName[0]}{user.lastName[0]}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{user.firstName} {user.lastName}</p>
+                            <p className="text-sm text-muted-foreground">@{user.username}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                          <LucideIcons.Circle className={`w-2 h-2 mr-1 ${user.isActive ? 'text-green-500' : 'text-gray-500'}`} />
+                          {user.isActive ? 'Aktif' : 'Pasif'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {new Date(user.createdAt).toLocaleDateString('tr-TR')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <LucideIcons.Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteUserMutation.mutate(user.id)}
+                            disabled={deleteUserMutation.isPending || user.role === 'admin'}
+                          >
+                            <LucideIcons.Trash className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="block lg:hidden space-y-3">
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-muted-foreground">
+                  <LucideIcons.Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  {searchQuery ? 'Arama kriterine uygun kullanıcı bulunamadı' : 'Henüz kullanıcı bulunmuyor'}
+                </div>
+              </div>
+            ) : (
+              filteredUsers.map((user) => (
+                <Card key={user.id} className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-medium text-white">
+                        {user.firstName[0]}{user.lastName[0]}
+                      </span>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-base truncate">
+                            {user.firstName} {user.lastName}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            @{user.username}
+                          </p>
+                        </div>
+                        <div className="flex space-x-1 ml-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <LucideIcons.Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteUserMutation.mutate(user.id)}
+                            disabled={deleteUserMutation.isPending || user.role === 'admin'}
+                            className="h-8 w-8 p-0"
+                          >
+                            <LucideIcons.Trash className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {user.email}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          {getRoleBadge(user.role)}
+                          <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                            <LucideIcons.Circle className={`w-2 h-2 mr-1 ${user.isActive ? 'text-green-500' : 'text-gray-500'}`} />
+                            {user.isActive ? 'Aktif' : 'Pasif'}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(user.createdAt).toLocaleDateString('tr-TR')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 
