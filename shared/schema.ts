@@ -199,11 +199,34 @@ export const newsRelations = relations(news, ({ one, many }) => ({
     fields: [news.authorId],
     references: [users.id],
   }),
+  editor: one(users, {
+    fields: [news.editorId],
+    references: [users.id],
+  }),
   category: one(categories, {
     fields: [news.categoryId],
     references: [categories.id],
   }),
+  city: one(cities, {
+    fields: [news.cityId],
+    references: [cities.id],
+  }),
   comments: many(comments),
+}));
+
+export const articlesRelations = relations(articles, ({ one }) => ({
+  author: one(users, {
+    fields: [articles.authorId],
+    references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [articles.categoryId],
+    references: [categories.id],
+  }),
+}));
+
+export const citiesRelations = relations(cities, ({ many }) => ({
+  news: many(news),
 }));
 
 export const commentsRelations = relations(comments, ({ one }) => ({

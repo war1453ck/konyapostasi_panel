@@ -50,7 +50,8 @@ export const MENU_ITEMS = [
     children: [
       { label: 'Tüm Haberler', path: '/news', key: 'news-list' },
       { label: 'Yeni Haber', path: '/news/new', key: 'news-new' },
-      { label: 'Taslaklar', path: '/news?status=draft', key: 'news-drafts' }
+      { label: 'Taslaklar', path: '/news?status=draft', key: 'news-drafts' },
+      { label: 'Makaleler', path: '/articles', key: 'articles' }
     ]
   },
   {

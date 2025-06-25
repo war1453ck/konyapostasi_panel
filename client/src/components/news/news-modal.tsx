@@ -56,18 +56,23 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
   const form = useForm<NewsFormData>({
     resolver: zodResolver(newsFormSchema),
     defaultValues: {
-      title: '',
-      slug: '',
-      summary: '',
-      content: '',
-      status: 'draft',
-      categoryId: 0,
-      authorId: 1, // Default to current user
-      featuredImage: '',
-      metaTitle: '',
-      metaDescription: '',
-      keywords: '',
-      scheduledAt: undefined,
+      title: news?.title || '',
+      slug: news?.slug || '',
+      summary: news?.summary || '',
+      content: news?.content || '',
+      featuredImage: news?.featuredImage || '',
+      videoUrl: news?.videoUrl || '',
+      videoThumbnail: news?.videoThumbnail || '',
+      source: news?.source || '',
+      status: news?.status || 'draft',
+      authorId: news?.authorId || 1,
+      editorId: news?.editorId || undefined,
+      categoryId: news?.categoryId || 1,
+      cityId: news?.cityId || undefined,
+      metaTitle: news?.metaTitle || '',
+      metaDescription: news?.metaDescription || '',
+      keywords: news?.keywords || '',
+      scheduledAt: news?.scheduledAt ? new Date(news.scheduledAt).toISOString().slice(0, 16) : '',
     },
   });
 
@@ -76,6 +81,15 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     queryFn: async () => {
       const response = await fetch('/api/categories', { credentials: 'include' });
       if (!response.ok) throw new Error('Kategoriler yüklenemedi');
+      return response.json();
+    }
+  });
+
+  const { data: cities = [] } = useQuery({
+    queryKey: ['/api/cities'],
+    queryFn: async () => {
+      const response = await fetch('/api/cities', { credentials: 'include' });
+      if (!response.ok) return [];
       return response.json();
     }
   });

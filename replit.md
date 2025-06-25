@@ -108,11 +108,41 @@ This is a full-stack news content management system built with React, Express, a
 - Auto-scaling deployment target
 - Development workflow with hot reload
 
+## Recent Changes
+
+✓ **Video News Support** (June 25, 2025)
+- Added video URL and thumbnail fields to news schema
+- Enhanced news modal with video content sections
+- Support for YouTube and other video platform integration
+
+✓ **Editor Assignment System** (June 25, 2025)
+- Added editor selection for news workflow
+- Enhanced news with editor approval process
+- Separate author and editor roles in content management
+
+✓ **City-Based Categorization** (June 25, 2025)
+- Added cities table with Istanbul, Ankara, İzmir
+- City selection in news creation
+- Location-based news organization
+
+✓ **Article Management for Writers** (June 25, 2025)
+- Created separate articles system for writer content
+- Full CRUD operations for articles
+- Added articles page in navigation menu
+- Writer-focused content creation workflow
+
+✓ **Enhanced News Modal** (June 25, 2025)
+- Added source attribution field
+- Video content support
+- City and editor selection
+- Improved form organization with multiple sections
+
 ## Changelog
 
 ```
 Changelog:
 - June 25, 2025. Initial setup
+- June 25, 2025. Implemented video news, city categories, editor assignment, and article system
 ```
 
 ## User Preferences
