@@ -19,6 +19,8 @@ import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import Advertisements from "@/pages/advertisements";
 import ClassifiedAds from "@/pages/classified-ads";
+import Newspaper from "@/pages/newspaper";
+import MenuSettings from "@/pages/menu-settings";
 
 function Router() {
   return (
@@ -32,10 +34,12 @@ function Router() {
         <Route path="/users" component={Users} />
         <Route path="/media" component={Media} />
         <Route path="/comments" component={Comments} />
+        <Route path="/newspaper" component={Newspaper} />
         <Route path="/advertisements" component={Advertisements} />
         <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/seo" component={SEO} />
         <Route path="/analytics" component={Analytics} />
+        <Route path="/menu-settings" component={MenuSettings} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

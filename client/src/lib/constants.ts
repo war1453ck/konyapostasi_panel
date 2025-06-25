@@ -36,76 +36,199 @@ export const USER_ROLE_LABELS = {
   [USER_ROLES.WRITER]: 'Yazar'
 } as const;
 
-export const MENU_ITEMS = [
-  {
-    label: 'Dashboard',
-    icon: 'BarChart3',
-    path: '/',
-    key: 'dashboard'
-  },
-  {
-    label: 'Haber Yönetimi',
-    icon: 'Newspaper',
-    key: 'news',
-    children: [
-      { label: 'Tüm Haberler', path: '/news', key: 'news-list' },
-      { label: 'Yeni Haber', path: '/news/new', key: 'news-new' },
-      { label: 'Taslaklar', path: '/news?status=draft', key: 'news-drafts' },
-      { label: 'Makaleler', path: '/articles', key: 'articles' }
-    ]
-  },
-  {
-    label: 'Kategoriler',
-    icon: 'Tags',
-    path: '/categories',
-    key: 'categories'
-  },
-  {
-    label: 'Kullanıcılar',
-    icon: 'Users',
-    path: '/users',
-    key: 'users'
-  },
-  {
-    label: 'Medya Kütüphanesi',
-    icon: 'Images',
-    path: '/media',
-    key: 'media'
-  },
-  {
-    label: 'Yorumlar',
-    icon: 'MessageSquare',
-    path: '/comments',
-    key: 'comments'
-  },
-  {
-    label: 'Reklamlar',
-    icon: 'Megaphone',
-    path: '/advertisements',
-    key: 'advertisements'
-  },
-  {
-    label: 'İlanlar',
-    icon: 'ShoppingBag',
-    path: '/classified-ads',
-    key: 'classified-ads'
-  },
-  {
-    label: 'SEO Araçları',
-    icon: 'Search',
-    path: '/seo',
-    key: 'seo'
-  },
-  {
-    label: 'Analitikler',
-    icon: 'BarChart',
-    path: '/analytics',
-    key: 'analytics'
-  },
-  {
-    label: 'Ayarlar',
-    icon: 'Settings',
-    path: '/settings',
-    key: 'settings'
+// Get menu items from localStorage or use defaults
+const getStoredMenuOrder = () => {
+  try {
+    const stored = localStorage.getItem('menuOrder');
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
   }
-] as const;
+};
+
+const DEFAULT_MENU_ITEMS = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    path: '/',
+    icon: 'BarChart3',
+    order: 1,
+    visible: true,
+    group: 'main'
+  },
+  {
+    key: 'content',
+    label: 'İçerik Yönetimi',
+    icon: 'FileText',
+    order: 2,
+    visible: true,
+    group: 'content',
+    children: [
+      {
+        key: 'news',
+        label: 'Haberler',
+        path: '/news',
+        icon: 'FileText',
+        order: 1,
+        visible: true,
+      },
+      {
+        key: 'newspaper',
+        label: 'Dijital Gazete',
+        path: '/newspaper',
+        icon: 'Newspaper',
+        order: 2,
+        visible: true,
+      },
+      {
+        key: 'articles',
+        label: 'Makaleler',
+        path: '/articles',
+        icon: 'BookOpen',
+        order: 3,
+        visible: true,
+      },
+      {
+        key: 'categories',
+        label: 'Kategoriler',
+        path: '/categories',
+        icon: 'Tags',
+        order: 4,
+        visible: true,
+      },
+      {
+        key: 'comments',
+        label: 'Yorumlar',
+        path: '/comments',
+        icon: 'MessageSquare',
+        order: 5,
+        visible: true,
+      },
+    ],
+  },
+  {
+    key: 'ads',
+    label: 'Reklam & İlanlar',
+    icon: 'Megaphone',
+    order: 3,
+    visible: true,
+    group: 'ads',
+    children: [
+      {
+        key: 'advertisements',
+        label: 'Reklamlar',
+        path: '/advertisements',
+        icon: 'Megaphone',
+        order: 1,
+        visible: true,
+      },
+      {
+        key: 'classified-ads',
+        label: 'İlanlar',
+        path: '/classified-ads',
+        icon: 'ShoppingBag',
+        order: 2,
+        visible: true,
+      },
+    ],
+  },
+  {
+    key: 'management',
+    label: 'Yönetim',
+    icon: 'Users',
+    order: 4,
+    visible: true,
+    group: 'management',
+    children: [
+      {
+        key: 'users',
+        label: 'Kullanıcılar',
+        path: '/users',
+        icon: 'Users',
+        order: 1,
+        visible: true,
+      },
+      {
+        key: 'media',
+        label: 'Medya',
+        path: '/media',
+        icon: 'Image',
+        order: 2,
+        visible: true,
+      },
+    ],
+  },
+  {
+    key: 'tools',
+    label: 'Araçlar',
+    icon: 'Wrench',
+    order: 5,
+    visible: true,
+    group: 'tools',
+    children: [
+      {
+        key: 'seo',
+        label: 'SEO',
+        path: '/seo',
+        icon: 'Search',
+        order: 1,
+        visible: true,
+      },
+      {
+        key: 'analytics',
+        label: 'Analitik',
+        path: '/analytics',
+        icon: 'TrendingUp',
+        order: 2,
+        visible: true,
+      },
+    ],
+  },
+  {
+    key: 'system',
+    label: 'Sistem',
+    icon: 'Settings',
+    order: 6,
+    visible: true,
+    group: 'system',
+    children: [
+      {
+        key: 'menu-settings',
+        label: 'Menü Ayarları',
+        path: '/menu-settings',
+        icon: 'Menu',
+        order: 1,
+        visible: true,
+      },
+      {
+        key: 'settings',
+        label: 'Genel Ayarlar',
+        path: '/settings',
+        icon: 'Settings',
+        order: 2,
+        visible: true,
+      },
+    ],
+  },
+];
+
+// Apply stored menu order if available
+const applyStoredOrder = (items: any[]) => {
+  const stored = getStoredMenuOrder();
+  if (!stored) return items;
+  
+  return items.map(item => {
+    const storedItem = stored.find((s: any) => s.id === item.key);
+    if (storedItem) {
+      return {
+        ...item,
+        label: storedItem.label || item.label,
+        order: storedItem.order || item.order,
+        visible: storedItem.visible !== undefined ? storedItem.visible : item.visible,
+      };
+    }
+    return item;
+  }).sort((a, b) => (a.order || 0) - (b.order || 0)).filter(item => item.visible !== false);
+};
+
+export const MENU_ITEMS = applyStoredOrder(DEFAULT_MENU_ITEMS);
