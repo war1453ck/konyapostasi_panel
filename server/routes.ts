@@ -229,7 +229,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authorId: req.body.authorId || 1,
       };
       
-      const newsData = insertNewsSchema.parse(data);
+      // Remove date fields before validation and handle them separately
+      const { publishedAt, scheduledAt, ...dataWithoutDates } = data;
+      
+      const newsData = insertNewsSchema.parse(dataWithoutDates);
+      
+      // Add date fields after validation
+      if (publishedAt) {
+        newsData.publishedAt = new Date(publishedAt);
+      }
+      if (scheduledAt) {
+        newsData.scheduledAt = new Date(scheduledAt);
+      }
       const news = await storage.createNews(newsData);
       res.status(201).json(news);
     } catch (error) {
@@ -278,7 +289,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authorId: req.body.authorId || 1,
       };
       
-      const newsData = insertNewsSchema.partial().parse(data);
+      // Remove date fields before validation and handle them separately
+      const { publishedAt, scheduledAt, ...dataWithoutDates } = data;
+      
+      const newsData = insertNewsSchema.partial().parse(dataWithoutDates);
+      
+      // Add date fields after validation
+      if (publishedAt) {
+        newsData.publishedAt = new Date(publishedAt);
+      }
+      if (scheduledAt) {
+        newsData.scheduledAt = new Date(scheduledAt);
+      }
       const news = await storage.updateNews(id, newsData);
       if (!news) {
         return res.status(404).json({ message: "Haber bulunamadı" });

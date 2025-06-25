@@ -180,6 +180,8 @@ export const insertNewsSchema = createInsertSchema(news).omit({
   createdAt: true,
   updatedAt: true,
   viewCount: true,
+  publishedAt: true,
+  scheduledAt: true,
 }).extend({
   slug: z.string().optional(),
   authorId: z.number().optional(),
