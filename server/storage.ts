@@ -2201,6 +2201,69 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(magazineCategories).orderBy(magazineCategories.sortOrder, magazineCategories.name);
   }
 
+  // Sources
+  async getSource(id: number): Promise<Source | undefined> {
+    const sourceList = await db.select().from(sources).where(eq(sources.id, id));
+    return sourceList[0];
+  }
+
+  async getSourceBySlug(slug: string): Promise<Source | undefined> {
+    const sourceList = await db.select().from(sources).where(eq(sources.slug, slug));
+    return sourceList[0];
+  }
+
+  async createSource(data: InsertSource): Promise<Source | undefined> {
+    const [source] = await db
+      .insert(sources)
+      .values({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return source;
+  }
+
+  async updateSource(id: number, data: Partial<InsertSource>): Promise<Source | undefined> {
+    const [source] = await db
+      .update(sources)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(sources.id, id))
+      .returning();
+    return source || undefined;
+  }
+
+  async deleteSource(id: number): Promise<boolean> {
+    try {
+      // Check if any news are using this source
+      const newsUsingSource = await db
+        .select()
+        .from(news)
+        .where(eq(news.sourceId, id));
+      
+      if (newsUsingSource.length > 0) {
+        throw new Error(`Bu kaynağı kullanan ${newsUsingSource.length} haber var. Önce haberleri başka kaynaklara taşıyın.`);
+      }
+      
+      const result = await db.delete(sources).where(eq(sources.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Error deleting source:', error);
+      throw error;
+    }
+  }
+
+  async getAllSources(): Promise<Source[]> {
+    return db.select().from(sources).orderBy(sources.name);
+  }
+
+  async getActiveSources(): Promise<Source[]> {
+    return db.select().from(sources).where(eq(sources.isActive, true)).orderBy(sources.name);
+  }
+
   async deleteDigitalMagazine(id: number): Promise<boolean> {
     const result = await db
       .delete(digitalMagazines)

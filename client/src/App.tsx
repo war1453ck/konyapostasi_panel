@@ -24,6 +24,7 @@ import Newspaper from "@/pages/newspaper";
 import DigitalMagazine from "@/pages/digital-magazine";
 import MagazineCategories from "@/pages/magazine-categories";
 import MenuSettings from "@/pages/menu-settings";
+import Sources from "@/pages/sources";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
         <Route path="/newspaper" component={Newspaper} />
         <Route path="/digital-magazine" component={DigitalMagazine} />
         <Route path="/magazine-categories" component={MagazineCategories} />
+        <Route path="/sources" component={Sources} />
         <Route path="/advertisements" component={Advertisements} />
         <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/seo" component={SEO} />

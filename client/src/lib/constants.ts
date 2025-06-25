@@ -120,6 +120,14 @@ const DEFAULT_MENU_ITEMS = [
         order: 7,
         visible: true,
       },
+      {
+        key: 'sources',
+        label: 'Haber Kaynakları',
+        path: '/sources',
+        icon: 'Globe',
+        order: 8,
+        visible: true,
+      },
     ],
   },
   {

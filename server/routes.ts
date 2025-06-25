@@ -592,6 +592,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sources endpoints
+  app.get("/api/sources", async (_req, res) => {
+    try {
+      const sources = await storage.getAllSources();
+      res.json(sources);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/sources/active", async (_req, res) => {
+    try {
+      const sources = await storage.getActiveSources();
+      res.json(sources);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/sources/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const source = await storage.getSource(id);
+      if (!source) {
+        return res.status(404).json({ message: "Kaynak bulunamadı" });
+      }
+      res.json(source);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/sources", async (req, res) => {
+    try {
+      const validatedData = insertSourceSchema.parse(req.body);
+      const source = await storage.createSource(validatedData);
+      res.status(201).json(source);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Geçersiz veri", errors: error.errors });
+      }
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/sources/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertSourceSchema.partial().parse(req.body);
+      const source = await storage.updateSource(id, validatedData);
+      if (!source) {
+        return res.status(404).json({ message: "Kaynak bulunamadı" });
+      }
+      res.json(source);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Geçersiz veri", errors: error.errors });
+      }
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/sources/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Geçersiz kaynak ID" });
+      }
+      
+      const success = await storage.deleteSource(id);
+      if (!success) {
+        return res.status(404).json({ message: "Kaynak bulunamadı" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      console.error('Error deleting source:', error);
+      res.status(400).json({ message: error.message || "Kaynak silinirken hata oluştu" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

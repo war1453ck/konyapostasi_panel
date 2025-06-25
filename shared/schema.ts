@@ -31,6 +31,19 @@ export const cities = pgTable("cities", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const sources = pgTable("sources", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  website: text("website"),
+  contactEmail: text("contact_email"),
+  type: text("type", { enum: ["newspaper", "magazine", "online", "tv", "radio", "agency", "social"] }).notNull().default("online"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const news = pgTable("news", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
@@ -41,6 +54,7 @@ export const news = pgTable("news", {
   videoUrl: text("video_url"),
   videoThumbnail: text("video_thumbnail"),
   source: text("source"),
+  sourceId: integer("source_id"),
   status: text("status", { enum: ["draft", "review", "published", "scheduled"] }).notNull().default("draft"),
   authorId: integer("author_id").notNull(),
   editorId: integer("editor_id"),
@@ -398,6 +412,10 @@ export const newsRelations = relations(news, ({ one, many }) => ({
     fields: [news.cityId],
     references: [cities.id],
   }),
+  sourceRelation: one(sources, {
+    fields: [news.sourceId],
+    references: [sources.id],
+  }),
   comments: many(comments),
 }));
 
@@ -429,3 +447,13 @@ export const mediaRelations = relations(media, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Sources schemas
+export const insertSourceSchema = createInsertSchema(sources).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSource = z.infer<typeof insertSourceSchema>;
+export type Source = typeof sources.$inferSelect;
