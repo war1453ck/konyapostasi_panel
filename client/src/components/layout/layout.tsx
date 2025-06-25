@@ -1,4 +1,4 @@
-import { AuthContext, useAuthProvider } from '@/hooks/use-auth';
+import { AuthContext, useAuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { useState } from 'react';
@@ -43,7 +43,7 @@ export function Layout({ children }: LayoutProps) {
 }
 
 function LoginForm() {
-  const { login } = useAuth();
+  const auth = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +54,7 @@ function LoginForm() {
     setIsLoading(true);
     setError('');
 
-    const success = await login(username, password);
+    const success = await auth.login(username, password);
     if (!success) {
       setError('Geçersiz kullanıcı adı veya şifre');
     }

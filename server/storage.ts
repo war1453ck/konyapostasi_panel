@@ -149,7 +149,9 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      role: insertUser.role || 'writer',
+      isActive: insertUser.isActive ?? true
     };
     this.users.set(id, user);
     return user;
@@ -186,7 +188,9 @@ export class MemStorage implements IStorage {
     const category: Category = { 
       ...insertCategory, 
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: insertCategory.description ?? null,
+      parentId: insertCategory.parentId ?? null
     };
     this.categories.set(id, category);
     return category;
@@ -256,7 +260,15 @@ export class MemStorage implements IStorage {
       id,
       viewCount: 0,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      status: insertNews.status || 'draft',
+      summary: insertNews.summary ?? null,
+      metaTitle: insertNews.metaTitle ?? null,
+      metaDescription: insertNews.metaDescription ?? null,
+      keywords: insertNews.keywords ?? null,
+      featuredImage: insertNews.featuredImage ?? null,
+      publishedAt: insertNews.publishedAt ?? null,
+      scheduledAt: insertNews.scheduledAt ?? null
     };
     this.news.set(id, newsItem);
     return newsItem;
@@ -336,7 +348,8 @@ export class MemStorage implements IStorage {
     const comment: Comment = { 
       ...insertComment, 
       id,
-      createdAt: new Date()
+      createdAt: new Date(),
+      status: insertComment.status || 'pending'
     };
     this.comments.set(id, comment);
     return comment;

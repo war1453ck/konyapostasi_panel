@@ -124,7 +124,7 @@
 }
 
 .file-upload-zone.dragover {
-  @apply border-primary bg-primary/10;
+  @apply border-primary bg-accent;
 }
 
 /* Responsive table */
@@ -133,7 +133,7 @@
 }
 
 .responsive-table th {
-  @apply px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-muted/50;
+  @apply px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bg-muted;
 }
 
 .responsive-table td {
@@ -141,7 +141,7 @@
 }
 
 .responsive-table tr:hover {
-  @apply bg-muted/50;
+  @apply bg-muted;
 }
 
 /* Loading animations */
@@ -173,5 +173,5 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+  @apply bg-muted-foreground rounded-full opacity-30 hover:opacity-50;
 }
