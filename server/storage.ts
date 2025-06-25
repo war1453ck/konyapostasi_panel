@@ -2178,8 +2178,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteMagazineCategory(id: number): Promise<boolean> {
-    const result = await db.delete(magazineCategories).where(eq(magazineCategories.id, id));
-    return (result.rowCount ?? 0) > 0;
+    try {
+      // Check if any digital magazines are using this category
+      const magazinesUsingCategory = await db
+        .select()
+        .from(digitalMagazines)
+        .where(eq(digitalMagazines.categoryId, id));
+      
+      if (magazinesUsingCategory.length > 0) {
+        throw new Error(`Bu kategoriyi kullanan ${magazinesUsingCategory.length} dergi var. Önce dergileri başka kategorilere taşıyın.`);
+      }
+      
+      const result = await db.delete(magazineCategories).where(eq(magazineCategories.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Error deleting magazine category:', error);
+      throw error;
+    }
   }
 
   async getAllMagazineCategories(): Promise<MagazineCategory[]> {

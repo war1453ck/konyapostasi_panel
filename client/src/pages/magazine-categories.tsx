@@ -185,7 +185,7 @@ export default function MagazineCategoriesPage() {
   };
 
   const handleDeleteCategory = (id: number) => {
-    if (confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) {
+    if (confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriyi kullanan dergiler varsa önce onları başka kategorilere taşımanız gerekebilir.')) {
       deleteCategoryMutation.mutate(id);
     }
   };

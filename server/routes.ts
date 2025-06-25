@@ -576,13 +576,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/magazine-categories/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Geçersiz kategori ID" });
+      }
+      
       const success = await storage.deleteMagazineCategory(id);
       if (!success) {
-        return res.status(404).json({ message: "Category not found" });
+        return res.status(404).json({ message: "Kategori bulunamadı" });
       }
       res.status(204).send();
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      console.error('Error deleting magazine category:', error);
+      res.status(400).json({ message: error.message || "Kategori silinirken hata oluştu" });
     }
   });
 
