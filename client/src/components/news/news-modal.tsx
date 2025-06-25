@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { insertNewsSchema } from '@shared/schema';
 import type { NewsWithDetails, Category } from '@shared/schema';
+import { isValidYouTubeUrl, getYouTubeEmbedUrl, generateYouTubeEmbedCode, getYouTubeThumbnail } from '@/lib/youtube';
 import { z } from 'zod';
 
 const newsFormSchema = insertNewsSchema.extend({
@@ -373,47 +374,131 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
               </TabsContent>
 
               <TabsContent value="media" className="space-y-6">
-                <Card>
-                  <CardContent className="pt-6">
-                    <FormField
-                      control={form.control}
-                      name="featuredImage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Kapak Görseli</FormLabel>
-                          <FormControl>
-                            <div className="space-y-4">
-                              <FileUpload
-                                onFileUpload={handleFileUpload}
-                                accept={{ 'image/*': [] }}
-                                maxFiles={1}
+                <div className="space-y-6">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <FormField
+                        control={form.control}
+                        name="featuredImage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Kapak Görseli</FormLabel>
+                            <FormControl>
+                              <div className="space-y-4">
+                                <Input
+                                  placeholder="Görsel URL'si girin..."
+                                  {...field}
+                                />
+                                <FileUpload
+                                  onFileUpload={(files) => {
+                                    console.log('Files uploaded:', files);
+                                  }}
+                                  accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] }}
+                                  maxFiles={1}
+                                  className="border-dashed"
+                                />
+                                {field.value && (
+                                  <div className="relative">
+                                    <img
+                                      src={field.value}
+                                      alt="Kapak görseli"
+                                      className="max-w-full h-40 object-cover rounded-lg"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="destructive"
+                                      size="sm"
+                                      className="absolute top-2 right-2"
+                                      onClick={() => field.onChange('')}
+                                    >
+                                      Kaldır
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6 space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="videoUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Video URL (YouTube)</FormLabel>
+                            <FormControl>
+                              <div className="space-y-4">
+                                <Input
+                                  placeholder="YouTube video URL'si girin... (örn: https://www.youtube.com/watch?v=VIDEO_ID)"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    // Auto-generate thumbnail when YouTube URL is entered
+                                    const url = e.target.value;
+                                    if (isValidYouTubeUrl(url)) {
+                                      const thumbnail = getYouTubeThumbnail(url);
+                                      if (thumbnail) {
+                                        form.setValue('videoThumbnail', thumbnail);
+                                      }
+                                    }
+                                  }}
+                                />
+                                {field.value && isValidYouTubeUrl(field.value) && (
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-green-600">✓ Geçerli YouTube URL'si</p>
+                                    <div className="p-3 bg-muted rounded-lg">
+                                      <p className="text-sm font-medium mb-2">Embed Kodu:</p>
+                                      <code className="text-xs bg-background p-2 rounded block overflow-x-auto">
+                                        {generateYouTubeEmbedCode(field.value)}
+                                      </code>
+                                    </div>
+                                    {getYouTubeThumbnail(field.value) && (
+                                      <div className="flex items-center space-x-2">
+                                        <img 
+                                          src={getYouTubeThumbnail(field.value)!} 
+                                          alt="Video thumbnail" 
+                                          className="w-16 h-12 object-cover rounded"
+                                        />
+                                        <span className="text-sm text-muted-foreground">Otomatik küçük resim</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {field.value && !isValidYouTubeUrl(field.value) && (
+                                  <p className="text-sm text-red-600">❌ Geçersiz YouTube URL'si</p>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="videoThumbnail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Video Küçük Resmi</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Video küçük resmi URL'si (otomatik doldurulur)..."
+                                {...field}
                               />
-                              {field.value && (
-                                <div className="relative">
-                                  <img
-                                    src={field.value}
-                                    alt="Kapak görseli"
-                                    className="max-w-full h-40 object-cover rounded-lg"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-2 right-2"
-                                    onClick={() => field.onChange('')}
-                                  >
-                                    Kaldır
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="seo" className="space-y-6">

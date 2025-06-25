@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { StatsCard } from '@/components/stats-card';
 import { NewsTable } from '@/components/news/news-table';
 import { NewsModal } from '@/components/news/news-modal';
+import { NewsPreviewModal } from '@/components/news/news-preview-modal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import * as LucideIcons from 'lucide-react';
 export default function Dashboard() {
   const [selectedNews, setSelectedNews] = useState<NewsWithDetails | null>(null);
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const { data: stats } = useQuery({
     queryKey: ['/api/stats'],
@@ -33,21 +34,27 @@ export default function Dashboard() {
 
   const handleEditNews = (news: NewsWithDetails) => {
     setSelectedNews(news);
-    setIsPreviewMode(false);
     setIsNewsModalOpen(true);
   };
 
   const handlePreviewNews = (news: NewsWithDetails) => {
     setSelectedNews(news);
-    setIsPreviewMode(true);
-    // In a real app, this would open a preview modal or navigate to preview page
-    console.log('Preview news:', news);
+    setIsPreviewModalOpen(true);
   };
 
   const handleCreateNews = () => {
     setSelectedNews(null);
-    setIsPreviewMode(false);
     setIsNewsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedNews(null);
+    setIsNewsModalOpen(false);
+  };
+
+  const handleClosePreviewModal = () => {
+    setSelectedNews(null);
+    setIsPreviewModalOpen(false);
   };
 
   return (

@@ -203,7 +203,11 @@ export function NewsTable({ onEdit, onPreview }: NewsTableProps) {
                 <TableRow key={item.id}>
                   <TableCell>
                     <div className="flex items-center">
-                      {item.featuredImage ? (
+                      {item.videoUrl && isValidYouTubeUrl(item.videoUrl) ? (
+                        <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                          <LucideIcons.Play className="w-4 h-4 text-red-600" />
+                        </div>
+                      ) : item.featuredImage ? (
                         <img
                           src={item.featuredImage}
                           alt={item.title}
@@ -215,18 +219,25 @@ export function NewsTable({ onEdit, onPreview }: NewsTableProps) {
                         </div>
                       )}
                       <div>
-                        <p className="font-medium text-sm">{item.title}</p>
+                        <p className="font-medium text-sm">
+                          {item.title || 'Başlıksız'}
+                          {item.videoUrl && isValidYouTubeUrl(item.videoUrl) && (
+                            <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              Video
+                            </span>
+                          )}
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          {item.summary?.substring(0, 50)}...
+                          {item.summary?.substring(0, 50) || 'Özet yok'}...
                         </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{item.category.name}</Badge>
+                    <Badge variant="outline">{item.category?.name || 'Kategori Yok'}</Badge>
                   </TableCell>
                   <TableCell>
-                    {item.author.firstName} {item.author.lastName}
+                    {item.author?.firstName || 'Bilinmeyen'} {item.author?.lastName || 'Yazar'}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(item.status)}

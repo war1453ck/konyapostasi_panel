@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NewsTable } from '@/components/news/news-table';
 import { NewsModal } from '@/components/news/news-modal';
+import { NewsPreviewModal } from '@/components/news/news-preview-modal';
 import { Button } from '@/components/ui/button';
 import type { NewsWithDetails } from '@shared/schema';
 import * as LucideIcons from 'lucide-react';
@@ -8,6 +9,7 @@ import * as LucideIcons from 'lucide-react';
 export default function NewsList() {
   const [selectedNews, setSelectedNews] = useState<NewsWithDetails | null>(null);
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
   const handleEditNews = (news: NewsWithDetails) => {
     setSelectedNews(news);
@@ -15,13 +17,23 @@ export default function NewsList() {
   };
 
   const handlePreviewNews = (news: NewsWithDetails) => {
-    // In a real app, this would open a preview modal or navigate to preview page
-    console.log('Preview news:', news);
+    setSelectedNews(news);
+    setIsPreviewModalOpen(true);
   };
 
   const handleCreateNews = () => {
     setSelectedNews(null);
     setIsNewsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedNews(null);
+    setIsNewsModalOpen(false);
+  };
+
+  const handleClosePreviewModal = () => {
+    setSelectedNews(null);
+    setIsPreviewModalOpen(false);
   };
 
   return (
@@ -47,7 +59,14 @@ export default function NewsList() {
       {/* News Modal */}
       <NewsModal
         isOpen={isNewsModalOpen}
-        onClose={() => setIsNewsModalOpen(false)}
+        onClose={handleCloseModal}
+        news={selectedNews}
+      />
+
+      {/* News Preview Modal */}
+      <NewsPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={handleClosePreviewModal}
         news={selectedNews}
       />
     </div>
