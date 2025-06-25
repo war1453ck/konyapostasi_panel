@@ -121,9 +121,10 @@ This is a full-stack news content management system built with React, Express, a
 - Separate author and editor roles in content management
 
 ✓ **City-Based Categorization** (June 25, 2025)
-- Added cities table with Istanbul, Ankara, İzmir
-- City selection in news creation
-- Location-based news organization
+- Added complete cities database with all 81 Turkish provinces
+- City selection in news creation with full provincial coverage
+- Location-based news organization nationwide
+- Includes proper Turkish character handling and slug generation
 
 ✓ **Article Management for Writers** (June 25, 2025)
 - Created separate articles system for writer content
