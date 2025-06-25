@@ -568,89 +568,171 @@ export default function Categories() {
         </CardContent>
       </Card>
 
-      {/* Category Modal */}
+      {/* Professional Category Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori Oluştur'}
-            </DialogTitle>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <LucideIcons.Tag className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">
+                  {selectedCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori Oluştur'}
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {selectedCategory 
+                    ? 'Kategori bilgilerini güncelleyin ve değişiklikleri kaydedin' 
+                    : 'Yeni bir kategori oluşturun ve haber organizasyonunuzu geliştirin'
+                  }
+                </p>
+              </div>
+            </div>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Kategori Adı</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Kategori adını girin..."
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          handleNameChange(e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basic Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 pb-2 border-b">
+                  <LucideIcons.Info className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Temel Bilgiler</h3>
+                </div>
 
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL Slug</FormLabel>
-                    <FormControl>
-                      <Input placeholder="url-slug" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <LucideIcons.Type className="w-4 h-4" />
+                          <span>Kategori Adı</span>
+                          <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Örn: Teknoloji, Spor, Ekonomi..."
+                            className="h-11"
+                            {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              handleNameChange(e.target.value);
+                            }}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Kategori için açıklayıcı bir ad girin
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Açıklama (Opsiyonel)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Kategori açıklaması..."
-                        rows={3}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="slug"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <LucideIcons.Link className="w-4 h-4" />
+                          <span>URL Slug</span>
+                          <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                              /
+                            </span>
+                            <Input 
+                              placeholder="teknoloji-haberleri" 
+                              className="h-11 pl-6 font-mono text-sm"
+                              {...field} 
+                            />
+                          </div>
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          URL'de görünecek benzersiz kimlik
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  İptal
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createCategoryMutation.isPending}
-                >
-                  {createCategoryMutation.isPending 
-                    ? 'Kaydediliyor...' 
-                    : selectedCategory 
-                      ? 'Güncelle' 
-                      : 'Oluştur'
-                  }
-                </Button>
+              {/* Description Section */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 pb-2 border-b">
+                  <LucideIcons.FileText className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Açıklama ve Detaylar</h3>
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center space-x-2">
+                        <LucideIcons.AlignLeft className="w-4 h-4" />
+                        <span>Kategori Açıklaması</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Bu kategori hangi tür haberleri içerir? Okuyucular için açıklayıcı bir tanım yazın..."
+                          className="min-h-[100px] resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">
+                        SEO ve kullanıcı deneyimi için önemlidir (isteğe bağlı)
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
+                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                  <LucideIcons.Shield className="w-4 h-4" />
+                  <span>Tüm alanlar güvenli şekilde saklanır</span>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsModalOpen(false)}
+                    className="min-w-[100px]"
+                  >
+                    <LucideIcons.X className="w-4 h-4 mr-2" />
+                    İptal
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createCategoryMutation.isPending}
+                    className="min-w-[120px]"
+                  >
+                    {createCategoryMutation.isPending ? (
+                      <>
+                        <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                        Kaydediliyor...
+                      </>
+                    ) : selectedCategory ? (
+                      <>
+                        <LucideIcons.Save className="w-4 h-4 mr-2" />
+                        Güncelle
+                      </>
+                    ) : (
+                      <>
+                        <LucideIcons.Plus className="w-4 h-4 mr-2" />
+                        Oluştur
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
