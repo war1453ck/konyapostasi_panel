@@ -65,6 +65,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       videoUrl: news?.videoUrl || '',
       videoThumbnail: news?.videoThumbnail || '',
       source: news?.source || '',
+      sourceId: news?.sourceId || undefined,
       status: news?.status || 'draft',
       authorId: news?.authorId || 1,
       editorId: news?.editorId || undefined,
