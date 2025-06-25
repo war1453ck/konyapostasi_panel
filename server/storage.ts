@@ -6,6 +6,8 @@ import {
   type Comment, type InsertComment, type CommentWithNews,
   type Media, type InsertMedia
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, count, and, or, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -441,4 +443,384 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DatabaseStorage implements IStorage {
+  // Users
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, userUpdate: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(userUpdate)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Categories
+  async getCategory(id: number): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category || undefined;
+  }
+
+  async getCategoryBySlug(slug: string): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.slug, slug));
+    return category || undefined;
+  }
+
+  async createCategory(insertCategory: InsertCategory): Promise<Category> {
+    const [category] = await db
+      .insert(categories)
+      .values(insertCategory)
+      .returning();
+    return category;
+  }
+
+  async updateCategory(id: number, categoryUpdate: Partial<InsertCategory>): Promise<Category | undefined> {
+    const [category] = await db
+      .update(categories)
+      .set(categoryUpdate)
+      .where(eq(categories.id, id))
+      .returning();
+    return category || undefined;
+  }
+
+  async getAllCategories(): Promise<CategoryWithChildren[]> {
+    const allCategories = await db.select().from(categories);
+    const newsCountQuery = await db
+      .select({
+        categoryId: news.categoryId,
+        count: count()
+      })
+      .from(news)
+      .groupBy(news.categoryId);
+
+    const categoryMap = new Map<number, CategoryWithChildren>();
+    const newsCountMap = new Map<number, number>();
+
+    // Build news count map
+    newsCountQuery.forEach(({ categoryId, count: newsCount }) => {
+      newsCountMap.set(categoryId, newsCount);
+    });
+
+    // Build categories with children structure
+    allCategories.forEach(category => {
+      categoryMap.set(category.id, {
+        ...category,
+        children: [],
+        newsCount: newsCountMap.get(category.id) || 0
+      });
+    });
+
+    // Organize parent-child relationships
+    const rootCategories: CategoryWithChildren[] = [];
+    allCategories.forEach(category => {
+      const categoryWithChildren = categoryMap.get(category.id)!;
+      if (category.parentId) {
+        const parent = categoryMap.get(category.parentId);
+        if (parent) {
+          parent.children!.push(categoryWithChildren);
+        }
+      } else {
+        rootCategories.push(categoryWithChildren);
+      }
+    });
+
+    return rootCategories;
+  }
+
+  async deleteCategory(id: number): Promise<boolean> {
+    const result = await db.delete(categories).where(eq(categories.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // News
+  async getNews(id: number): Promise<NewsWithDetails | undefined> {
+    const result = await db
+      .select({
+        news: news,
+        author: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        }
+      })
+      .from(news)
+      .leftJoin(users, eq(news.authorId, users.id))
+      .leftJoin(categories, eq(news.categoryId, categories.id))
+      .where(eq(news.id, id));
+
+    if (result.length === 0) return undefined;
+
+    const { news: newsItem, author, category } = result[0];
+    return {
+      ...newsItem,
+      author: author!,
+      category: category!
+    };
+  }
+
+  async getNewsBySlug(slug: string): Promise<NewsWithDetails | undefined> {
+    const result = await db
+      .select({
+        news: news,
+        author: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        }
+      })
+      .from(news)
+      .leftJoin(users, eq(news.authorId, users.id))
+      .leftJoin(categories, eq(news.categoryId, categories.id))
+      .where(eq(news.slug, slug));
+
+    if (result.length === 0) return undefined;
+
+    const { news: newsItem, author, category } = result[0];
+    return {
+      ...newsItem,
+      author: author!,
+      category: category!
+    };
+  }
+
+  async createNews(insertNews: InsertNews): Promise<News> {
+    const [newsItem] = await db
+      .insert(news)
+      .values(insertNews)
+      .returning();
+    return newsItem;
+  }
+
+  async updateNews(id: number, newsUpdate: Partial<InsertNews>): Promise<News | undefined> {
+    const [newsItem] = await db
+      .update(news)
+      .set({
+        ...newsUpdate,
+        updatedAt: new Date()
+      })
+      .where(eq(news.id, id))
+      .returning();
+    return newsItem || undefined;
+  }
+
+  async getAllNews(filters?: { status?: string; categoryId?: number; authorId?: number }): Promise<NewsWithDetails[]> {
+    let query = db
+      .select({
+        news: news,
+        author: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        }
+      })
+      .from(news)
+      .leftJoin(users, eq(news.authorId, users.id))
+      .leftJoin(categories, eq(news.categoryId, categories.id));
+
+    if (filters) {
+      const conditions = [];
+      if (filters.status) {
+        conditions.push(eq(news.status, filters.status as any));
+      }
+      if (filters.categoryId) {
+        conditions.push(eq(news.categoryId, filters.categoryId));
+      }
+      if (filters.authorId) {
+        conditions.push(eq(news.authorId, filters.authorId));
+      }
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as any;
+      }
+    }
+
+    const result = await query.orderBy(desc(news.createdAt));
+
+    return result.map(({ news: newsItem, author, category }) => ({
+      ...newsItem,
+      author: author!,
+      category: category!
+    }));
+  }
+
+  async deleteNews(id: number): Promise<boolean> {
+    const result = await db.delete(news).where(eq(news.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async incrementViewCount(id: number): Promise<void> {
+    await db
+      .update(news)
+      .set({
+        viewCount: sql`${news.viewCount} + 1`
+      })
+      .where(eq(news.id, id));
+  }
+
+  // Comments
+  async getComment(id: number): Promise<Comment | undefined> {
+    const [comment] = await db.select().from(comments).where(eq(comments.id, id));
+    return comment || undefined;
+  }
+
+  async createComment(insertComment: InsertComment): Promise<Comment> {
+    const [comment] = await db
+      .insert(comments)
+      .values(insertComment)
+      .returning();
+    return comment;
+  }
+
+  async updateComment(id: number, commentUpdate: Partial<InsertComment>): Promise<Comment | undefined> {
+    const [comment] = await db
+      .update(comments)
+      .set(commentUpdate)
+      .where(eq(comments.id, id))
+      .returning();
+    return comment || undefined;
+  }
+
+  async getAllComments(filters?: { status?: string; newsId?: number }): Promise<CommentWithNews[]> {
+    let query = db
+      .select({
+        comment: comments,
+        news: {
+          id: news.id,
+          title: news.title,
+          slug: news.slug,
+        }
+      })
+      .from(comments)
+      .leftJoin(news, eq(comments.newsId, news.id));
+
+    if (filters) {
+      const conditions = [];
+      if (filters.status) {
+        conditions.push(eq(comments.status, filters.status as any));
+      }
+      if (filters.newsId) {
+        conditions.push(eq(comments.newsId, filters.newsId));
+      }
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as any;
+      }
+    }
+
+    const result = await query.orderBy(desc(comments.createdAt));
+
+    return result.map(({ comment, news: newsItem }) => ({
+      ...comment,
+      news: newsItem!
+    }));
+  }
+
+  async deleteComment(id: number): Promise<boolean> {
+    const result = await db.delete(comments).where(eq(comments.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Media
+  async getMedia(id: number): Promise<Media | undefined> {
+    const [mediaItem] = await db.select().from(media).where(eq(media.id, id));
+    return mediaItem || undefined;
+  }
+
+  async createMedia(insertMedia: InsertMedia): Promise<Media> {
+    const [mediaItem] = await db
+      .insert(media)
+      .values(insertMedia)
+      .returning();
+    return mediaItem;
+  }
+
+  async getAllMedia(): Promise<Media[]> {
+    return db.select().from(media).orderBy(desc(media.createdAt));
+  }
+
+  async deleteMedia(id: number): Promise<boolean> {
+    const result = await db.delete(media).where(eq(media.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Analytics
+  async getStats(): Promise<{
+    totalNews: number;
+    activeWriters: number;
+    pendingComments: number;
+    todayViews: number;
+  }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [totalNewsResult] = await db.select({ count: count() }).from(news);
+    const [activeWritersResult] = await db.select({ count: count() }).from(users).where(eq(users.isActive, true));
+    const [pendingCommentsResult] = await db.select({ count: count() }).from(comments).where(eq(comments.status, 'pending'));
+    
+    // For today's views, we'll sum up view counts of news published today
+    // Since we don't have a views tracking table, this is a simplified approach
+    const [todayViewsResult] = await db
+      .select({ 
+        total: sql<number>`sum(${news.viewCount})` 
+      })
+      .from(news)
+      .where(sql`DATE(${news.publishedAt}) = DATE(${today.toISOString()})`);
+
+    return {
+      totalNews: totalNewsResult.count,
+      activeWriters: activeWritersResult.count,
+      pendingComments: pendingCommentsResult.count,
+      todayViews: todayViewsResult.total || 0
+    };
+  }
+}
+
+export const storage = new DatabaseStorage();

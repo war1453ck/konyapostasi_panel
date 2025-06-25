@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -120,3 +121,44 @@ export type CategoryWithChildren = Category & {
 export type CommentWithNews = Comment & {
   news: Pick<News, 'id' | 'title' | 'slug'>;
 };
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  news: many(news),
+  media: many(media),
+}));
+
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  parent: one(categories, {
+    fields: [categories.parentId],
+    references: [categories.id],
+  }),
+  children: many(categories),
+  news: many(news),
+}));
+
+export const newsRelations = relations(news, ({ one, many }) => ({
+  author: one(users, {
+    fields: [news.authorId],
+    references: [users.id],
+  }),
+  category: one(categories, {
+    fields: [news.categoryId],
+    references: [categories.id],
+  }),
+  comments: many(comments),
+}));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  news: one(news, {
+    fields: [comments.newsId],
+    references: [news.id],
+  }),
+}));
+
+export const mediaRelations = relations(media, ({ one }) => ({
+  uploadedByUser: one(users, {
+    fields: [media.uploadedBy],
+    references: [users.id],
+  }),
+}));
