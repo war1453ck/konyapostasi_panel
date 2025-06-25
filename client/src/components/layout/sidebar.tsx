@@ -44,7 +44,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <div className={cn(
         "fixed md:relative inset-y-0 left-0 z-50 md:z-auto",
-        "w-64 bg-sidebar-background border-r border-sidebar-border",
+        "w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700",
+        "shadow-lg md:shadow-none",
         "transform transition-transform duration-200 ease-in-out",
         "md:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full"
@@ -65,7 +66,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       onClick={() => toggleMenu(item.key)}
                       className={cn(
                         "sidebar-link w-full justify-between",
-                        expandedMenu === item.key && "bg-sidebar-accent"
+                        expandedMenu === item.key && "bg-gray-100 dark:bg-gray-700"
                       )}
                     >
                       <div className="flex items-center">
@@ -84,8 +85,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <div className={cn(
                               "block px-3 py-1 text-sm rounded transition-colors cursor-pointer",
                               isActiveLink(child.path)
-                                ? "text-primary bg-accent font-medium"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                ? "text-primary bg-blue-50 dark:bg-blue-900/20 font-medium"
+                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
                             )}>
                               {child.label}
                             </div>
@@ -110,7 +111,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </nav>
 
           {/* User Profile */}
-          <div className="px-4 py-3 border-t border-sidebar-border">
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <div className="flex items-center">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-white">
@@ -118,10 +119,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </span>
               </div>
               <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-sidebar-foreground">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-muted-foreground">{user?.role}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user?.role}</p>
               </div>
               <Button
                 variant="ghost"
