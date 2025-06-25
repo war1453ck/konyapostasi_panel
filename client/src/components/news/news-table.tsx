@@ -118,9 +118,9 @@ export function NewsTable({ onEdit, onPreview }: NewsTableProps) {
   };
 
   const filteredNews = news.filter(item =>
-    item.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-    item.author.firstName.toLowerCase().includes(filters.search.toLowerCase()) ||
-    item.author.lastName.toLowerCase().includes(filters.search.toLowerCase())
+    (item.title || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+    (item.author?.firstName || '').toLowerCase().includes(filters.search.toLowerCase()) ||
+    (item.author?.lastName || '').toLowerCase().includes(filters.search.toLowerCase())
   );
 
   if (isLoading) {
