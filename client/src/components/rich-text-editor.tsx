@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import * as LucideIcons from 'lucide-react';
 
 interface RichTextEditorProps {
   value: string;
@@ -31,66 +32,66 @@ export function RichTextEditor({
   };
 
   return (
-    <div className={cn("rich-editor", className)}>
+    <div className={cn("rich-editor border border-input rounded-md", className)}>
       {/* Toolbar */}
       <div className="border-b border-border p-2 flex items-center space-x-2 bg-muted/50">
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('bold')}
         >
-          <i className="fas fa-bold text-sm" />
+          <LucideIcons.Bold className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('italic')}
         >
-          <i className="fas fa-italic text-sm" />
+          <LucideIcons.Italic className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('underline')}
         >
-          <i className="fas fa-underline text-sm" />
+          <LucideIcons.Underline className="w-4 h-4" />
         </button>
         <div className="w-px h-4 bg-border" />
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('justifyLeft')}
         >
-          <i className="fas fa-align-left text-sm" />
+          <LucideIcons.AlignLeft className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('justifyCenter')}
         >
-          <i className="fas fa-align-center text-sm" />
+          <LucideIcons.AlignCenter className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('justifyRight')}
         >
-          <i className="fas fa-align-right text-sm" />
+          <LucideIcons.AlignRight className="w-4 h-4" />
         </button>
         <div className="w-px h-4 bg-border" />
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('insertUnorderedList')}
         >
-          <i className="fas fa-list-ul text-sm" />
+          <LucideIcons.List className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="p-1 hover:bg-accent rounded"
+          className="p-2 hover:bg-accent rounded text-sm"
           onClick={() => document.execCommand('insertOrderedList')}
         >
-          <i className="fas fa-list-ol text-sm" />
+          <LucideIcons.ListOrdered className="w-4 h-4" />
         </button>
       </div>
 
@@ -98,11 +99,13 @@ export function RichTextEditor({
       <div
         ref={editorRef}
         contentEditable
-        className="p-4 min-h-[250px] outline-none"
+        className="p-4 min-h-[250px] outline-none focus:bg-accent/5 border border-input rounded-b-md"
         onInput={handleInput}
         data-placeholder={placeholder}
+        suppressContentEditableWarning={true}
         style={{
-          content: value || placeholder
+          fontSize: '14px',
+          lineHeight: '1.5'
         }}
       />
     </div>
