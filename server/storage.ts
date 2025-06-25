@@ -34,6 +34,7 @@ export interface IStorage {
   updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
   getAllCategories(): Promise<CategoryWithChildren[]>;
   deleteCategory(id: number): Promise<boolean>;
+  reorderCategories(categoryOrders: { id: number; sortOrder: number }[]): Promise<void>;
 
   // Cities
   getCity(id: number): Promise<City | undefined>;
@@ -210,7 +211,10 @@ export class MemStorage implements IStorage {
       slug: "teknoloji",
       description: "Teknoloji haberleri",
       parentId: null,
+      isActive: true,
+      sortOrder: 1,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.categories.set(techCategory.id, techCategory);
 
@@ -220,7 +224,10 @@ export class MemStorage implements IStorage {
       slug: "ekonomi",
       description: "Ekonomi haberleri",
       parentId: null,
+      isActive: true,
+      sortOrder: 2,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.categories.set(economyCategory.id, economyCategory);
 
@@ -230,7 +237,10 @@ export class MemStorage implements IStorage {
       slug: "spor",
       description: "Spor haberleri",
       parentId: null,
+      isActive: true,
+      sortOrder: 3,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.categories.set(sportsCategory.id, sportsCategory);
 
@@ -239,6 +249,7 @@ export class MemStorage implements IStorage {
       id: this.currentCityId++,
       name: "İstanbul",
       slug: "istanbul",
+      code: "34",
       createdAt: new Date()
     };
     this.cities.set(istanbulCity.id, istanbulCity);
@@ -247,6 +258,7 @@ export class MemStorage implements IStorage {
       id: this.currentCityId++,
       name: "Ankara",
       slug: "ankara",
+      code: "06",
       createdAt: new Date()
     };
     this.cities.set(ankaraCity.id, ankaraCity);
@@ -255,6 +267,7 @@ export class MemStorage implements IStorage {
       id: this.currentCityId++,
       name: "İzmir",
       slug: "izmir",
+      code: "35",
       createdAt: new Date()
     };
     this.cities.set(izmirCity.id, izmirCity);
@@ -632,8 +645,11 @@ export class MemStorage implements IStorage {
       ...insertCategory, 
       id,
       createdAt: new Date(),
+      updatedAt: new Date(),
       description: insertCategory.description ?? null,
-      parentId: insertCategory.parentId ?? null
+      parentId: insertCategory.parentId ?? null,
+      isActive: insertCategory.isActive ?? true,
+      sortOrder: insertCategory.sortOrder ?? null
     };
     this.categories.set(id, category);
     return category;
@@ -661,6 +677,16 @@ export class MemStorage implements IStorage {
 
   async deleteCategory(id: number): Promise<boolean> {
     return this.categories.delete(id);
+  }
+
+  async reorderCategories(categoryOrders: { id: number; sortOrder: number }[]): Promise<void> {
+    for (const { id, sortOrder } of categoryOrders) {
+      const category = this.categories.get(id);
+      if (category) {
+        const updatedCategory = { ...category, sortOrder, updatedAt: new Date() };
+        this.categories.set(id, updatedCategory);
+      }
+    }
   }
 
   // News
@@ -1359,6 +1385,15 @@ export class DatabaseStorage implements IStorage {
   async deleteCategory(id: number): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async reorderCategories(categoryOrders: { id: number; sortOrder: number }[]): Promise<void> {
+    for (const { id, sortOrder } of categoryOrders) {
+      await db
+        .update(categories)
+        .set({ sortOrder })
+        .where(eq(categories.id, id));
+    }
   }
 
   // Cities

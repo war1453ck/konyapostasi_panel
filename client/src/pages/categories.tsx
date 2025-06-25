@@ -2,63 +2,35 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { z } from 'zod';
+import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { insertCategorySchema } from '@shared/schema';
 import type { CategoryWithChildren } from '@shared/schema';
-import * as LucideIcons from 'lucide-react';
 
-type CategoryFormData = {
-  name: string;
-  slug: string;
-  description?: string;
-  parentId?: number | null;
-  sortOrder?: number;
-  isActive?: boolean;
-};
+const categoryFormSchema = z.object({
+  name: z.string().min(1, 'Kategori adı gereklidir'),
+  slug: z.string().min(1, 'Slug gereklidir'),
+  description: z.string().optional(),
+  parentId: z.number().nullable().optional(),
+  sortOrder: z.number().min(0).optional(),
+  isActive: z.boolean().optional(),
+});
 
+type CategoryFormData = z.infer<typeof categoryFormSchema>;
 type SortOption = 'name' | 'newsCount' | 'createdAt' | 'sortOrder';
 type ViewMode = 'cards' | 'table';
 type StatusFilter = 'all' | 'active' | 'inactive';
@@ -67,14 +39,15 @@ export default function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithChildren | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('name');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('sortOrder');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<CategoryFormData>({
-    resolver: zodResolver(insertCategorySchema),
+    resolver: zodResolver(categoryFormSchema),
     defaultValues: {
       name: '',
       slug: '',
@@ -85,13 +58,8 @@ export default function Categories() {
     },
   });
 
-  const { data: categories = [], isLoading } = useQuery<CategoryWithChildren[]>({
+  const { data: categories = [], isLoading } = useQuery({
     queryKey: ['/api/categories'],
-    queryFn: async () => {
-      const response = await fetch('/api/categories', { credentials: 'include' });
-      if (!response.ok) throw new Error('Kategoriler yüklenemedi');
-      return response.json();
-    }
   });
 
   const createCategoryMutation = useMutation({
@@ -136,6 +104,26 @@ export default function Categories() {
       toast({
         title: 'Hata',
         description: 'Kategori silinirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const reorderCategoriesMutation = useMutation({
+    mutationFn: async (categoryOrders: { id: number; sortOrder: number }[]) => {
+      await apiRequest('POST', '/api/categories/reorder', { categoryOrders });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: 'Başarılı',
+        description: 'Kategori sıralaması güncellendi',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Hata',
+        description: 'Kategori sıralaması güncellenirken bir hata oluştu',
         variant: 'destructive',
       });
     }
@@ -190,6 +178,22 @@ export default function Categories() {
     createCategoryMutation.mutate(data);
   };
 
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(filteredAndSortedCategories);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update sort orders
+    const categoryOrders = items.map((category, index) => ({
+      id: category.id,
+      sortOrder: index + 1
+    }));
+
+    reorderCategoriesMutation.mutate(categoryOrders);
+  };
+
   // Filter and sort categories
   const filteredAndSortedCategories = categories
     .filter(category => {
@@ -198,22 +202,23 @@ export default function Categories() {
         (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()));
       
       // Status filter
+      const isActive = (category as any).isActive !== false;
       const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && (category as any).isActive !== false) ||
-        (statusFilter === 'inactive' && (category as any).isActive === false);
+        (statusFilter === 'active' && isActive) ||
+        (statusFilter === 'inactive' && !isActive);
       
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'sortOrder':
-          return ((a as any).sortOrder || 0) - ((b as any).sortOrder || 0);
         case 'name':
           return a.name.localeCompare(b.name, 'tr');
         case 'newsCount':
-          return (b.newsCount || 0) - (a.newsCount || 0);
+          return ((b as any).newsCount || 0) - ((a as any).newsCount || 0);
         case 'createdAt':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'sortOrder':
+          return ((a as any).sortOrder || 0) - ((b as any).sortOrder || 0);
         default:
           return 0;
       }
@@ -221,36 +226,39 @@ export default function Categories() {
 
   // Calculate statistics
   const totalCategories = categories.length;
-  const totalNews = categories.reduce((sum, cat) => sum + (cat.newsCount || 0), 0);
-  const avgNewsPerCategory = totalCategories > 0 ? Math.round(totalNews / totalCategories) : 0;
+  const activeCategories = categories.filter(cat => (cat as any).isActive !== false).length;
+  const totalNews = categories.reduce((sum, cat) => sum + ((cat as any).newsCount || 0), 0);
+  const avgNewsPerCategory = totalCategories > 0 ? Math.round(totalNews / totalCategories * 100) / 100 : 0;
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center">
-          <div className="loading-spinner w-8 h-8" />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <LucideIcons.Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Kategoriler yükleniyor...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
-        <div className="flex-1">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kategori Yönetimi</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Profesyonel kategori organizasyonu ve analizi</p>
+    <div className="space-y-6 p-4 lg:p-8">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Kategori Yönetimi</h1>
+          <p className="text-muted-foreground">
+            Haber kategorilerinizi düzenleyin ve yönetin
+          </p>
         </div>
-        <Button onClick={handleCreateCategory} className="w-full sm:w-auto min-h-[44px]">
+        <Button onClick={handleCreateCategory} className="min-h-[44px]">
           <LucideIcons.Plus className="w-4 h-4 mr-2" />
-          <span className="hidden sm:inline">Yeni Kategori</span>
-          <span className="sm:hidden">Kategori Ekle</span>
+          Yeni Kategori
         </Button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
@@ -269,7 +277,21 @@ export default function Categories() {
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                <LucideIcons.FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <LucideIcons.CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Aktif Kategori</p>
+                <p className="text-2xl font-bold">{activeCategories}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                <LucideIcons.FileText className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Toplam Haber</p>
@@ -282,26 +304,12 @@ export default function Categories() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                <LucideIcons.BarChart3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                <LucideIcons.BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Ortalama/Kategori</p>
                 <p className="text-2xl font-bold">{avgNewsPerCategory}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                <LucideIcons.TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Aktif Sonuç</p>
-                <p className="text-2xl font-bold">{filteredAndSortedCategories.length}</p>
               </div>
             </div>
           </CardContent>
@@ -362,7 +370,7 @@ export default function Categories() {
                   variant={viewMode === 'cards' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('cards')}
-                  className="rounded-none border-0 min-h-[44px]"
+                  className="rounded-none"
                 >
                   <LucideIcons.Grid3X3 className="w-4 h-4" />
                 </Button>
@@ -370,7 +378,7 @@ export default function Categories() {
                   variant={viewMode === 'table' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('table')}
-                  className="rounded-none border-0 min-h-[44px]"
+                  className="rounded-none"
                 >
                   <LucideIcons.List className="w-4 h-4" />
                 </Button>
@@ -383,313 +391,242 @@ export default function Categories() {
       {/* Categories List */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Kategoriler ({filteredAndSortedCategories.length} sonuç)
+          <CardTitle className="flex items-center space-x-2">
+            <span>Kategoriler ({filteredAndSortedCategories.length} sonuç)</span>
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+              <LucideIcons.Move className="w-4 h-4" />
+              <span>Sürükle & Bırak</span>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Professional Cards View */}
-          {viewMode === 'cards' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAndSortedCategories.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <div className="text-muted-foreground">
-                    <LucideIcons.Tags className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <h3 className="text-lg font-medium mb-2">
-                      {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz kategori bulunmuyor'}
-                    </h3>
-                    <p className="text-sm">
-                      {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'Yeni kategori ekleyerek başlayın'}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                filteredAndSortedCategories.map((category) => (
-                  <Card key={category.id} className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <LucideIcons.Tag className="w-4 h-4 text-primary" />
-                            </div>
-                            <h3 className="font-semibold text-lg truncate group-hover:text-primary transition-colors">
-                              {category.name}
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="categories">
+              {(provided) => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                  {viewMode === 'cards' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredAndSortedCategories.length === 0 ? (
+                        <div className="col-span-full text-center py-12">
+                          <div className="text-muted-foreground">
+                            <LucideIcons.Tags className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                            <h3 className="text-lg font-medium mb-2">
+                              {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz kategori bulunmuyor'}
                             </h3>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant={(category as any).isActive !== false ? "default" : "secondary"} className="text-xs">
-                                {(category as any).isActive !== false ? "Aktif" : "Pasif"}
-                              </Badge>
-                              {((category as any).sortOrder || 0) > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  #{(category as any).sortOrder}
-                                </Badge>
-                              )}
-                            </div>
+                            <p className="text-sm">
+                              {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'Yeni kategori ekleyerek başlayın'}
+                            </p>
                           </div>
-                          <p className="text-sm text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">
-                            /{category.slug}
-                          </p>
                         </div>
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <LucideIcons.MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditCategory(category)}>
-                              <LucideIcons.Edit className="w-4 h-4 mr-2" />
-                              Düzenle
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => deleteCategoryMutation.mutate(category.id)}
-                              disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
-                              className="text-destructive"
-                            >
-                              <LucideIcons.Trash className="w-4 h-4 mr-2" />
-                              Sil
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      ) : (
+                        filteredAndSortedCategories.map((category, index) => (
+                          <Draggable key={category.id} draggableId={category.id.toString()} index={index}>
+                            {(provided, snapshot) => (
+                              <Card 
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary ${snapshot.isDragging ? 'opacity-75 rotate-3 scale-105 shadow-2xl' : ''}`}
+                              >
+                                <CardContent className="p-6">
+                                  <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-2 mb-2">
+                                        <div className="p-2 bg-primary/10 rounded-lg">
+                                          <LucideIcons.Tag className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <h3 className="font-semibold text-lg truncate group-hover:text-primary transition-colors">
+                                          {category.name}
+                                        </h3>
+                                        <div className="flex items-center space-x-2">
+                                          <Badge variant={(category as any).isActive !== false ? "default" : "secondary"} className="text-xs">
+                                            {(category as any).isActive !== false ? "Aktif" : "Pasif"}
+                                          </Badge>
+                                          {((category as any).sortOrder || 0) > 0 && (
+                                            <Badge variant="outline" className="text-xs">
+                                              #{(category as any).sortOrder}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">
+                                        /{category.slug}
+                                      </p>
+                                    </div>
+                                    
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <LucideIcons.MoreVertical className="w-4 h-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEditCategory(category)}>
+                                          <LucideIcons.Edit className="w-4 h-4 mr-2" />
+                                          Düzenle
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem 
+                                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                                          disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
+                                          className="text-destructive"
+                                        >
+                                          <LucideIcons.Trash className="w-4 h-4 mr-2" />
+                                          Sil
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
 
-                      {category.description && (
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                          {category.description}
-                        </p>
+                                  {category.description && (
+                                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                                      {category.description}
+                                    </p>
+                                  )}
+
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                      <div className="flex items-center space-x-1 text-sm">
+                                        <LucideIcons.FileText className="w-4 h-4 text-blue-500" />
+                                        <span className="font-medium">{category.newsCount || 0}</span>
+                                        <span className="text-muted-foreground">haber</span>
+                                      </div>
+                                    </div>
+                                    
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(category.createdAt).toLocaleDateString('tr-TR')}
+                                    </span>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+                          </Draggable>
+                        ))
                       )}
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-1 text-sm">
-                            <LucideIcons.FileText className="w-4 h-4 text-blue-500" />
-                            <span className="font-medium">{category.newsCount || 0}</span>
-                            <span className="text-muted-foreground">haber</span>
-                          </div>
-                          
-                          {(category.newsCount || 0) > 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              Aktif
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(category.createdAt).toLocaleDateString('tr-TR')}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden lg:block">
-                <Table>
-                  <TableHeader>
-                <TableRow>
-                  <TableHead>Kategori Adı</TableHead>
-                  <TableHead>Slug</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead>Sıra</TableHead>
-                  <TableHead>Açıklama</TableHead>
-                  <TableHead>Haber Sayısı</TableHead>
-                  <TableHead>İşlemler</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedCategories.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="text-muted-foreground">
-                        <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        {searchQuery ? 'Arama kriterine uygun kategori bulunamadı' : 'Henüz kategori bulunmuyor'}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredAndSortedCategories.map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell className="font-medium">{category.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{category.slug}</TableCell>
-                      <TableCell>
-                        <Badge variant={(category as any).isActive !== false ? "default" : "secondary"} className="text-xs">
-                          {(category as any).isActive !== false ? "Aktif" : "Pasif"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <LucideIcons.ArrowUpDown className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm font-mono">
-                            {(category as any).sortOrder || 0}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {category.description?.substring(0, 50)}
-                        {category.description && category.description.length > 50 && '...'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <LucideIcons.FileText className="w-4 h-4 mr-1" />
-                          {category.newsCount || 0}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditCategory(category)}
-                          >
-                            <LucideIcons.Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteCategoryMutation.mutate(category.id)}
-                            disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
-                          >
-                            <LucideIcons.Trash className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="block lg:hidden space-y-3">
-            {filteredAndSortedCategories.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-muted-foreground">
-                  <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  {searchQuery ? 'Arama kriterine uygun kategori bulunamadı' : 'Henüz kategori bulunmuyor'}
-                </div>
-              </div>
-            ) : (
-              filteredAndSortedCategories.map((category) => (
-                <Card key={category.id} className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-base truncate">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        /{category.slug}
-                      </p>
                     </div>
-                    <div className="flex space-x-1 ml-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditCategory(category)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <LucideIcons.Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteCategoryMutation.mutate(category.id)}
-                        disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
-                        className="h-8 w-8 p-0"
-                      >
-                        <LucideIcons.Trash className="w-4 h-4" />
-                      </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Kategori Adı</TableHead>
+                            <TableHead>Slug</TableHead>
+                            <TableHead>Durum</TableHead>
+                            <TableHead>Sıra</TableHead>
+                            <TableHead>Haber Sayısı</TableHead>
+                            <TableHead>Tarih</TableHead>
+                            <TableHead className="w-20">İşlemler</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredAndSortedCategories.map((category, index) => (
+                            <Draggable key={category.id} draggableId={category.id.toString()} index={index}>
+                              {(provided, snapshot) => (
+                                <TableRow 
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`${snapshot.isDragging ? 'opacity-75 scale-105 shadow-lg' : ''} transition-all duration-200`}
+                                >
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center space-x-2">
+                                      <LucideIcons.Tag className="w-4 h-4 text-primary" />
+                                      <span>{category.name}</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <code className="text-sm bg-muted px-2 py-1 rounded">/{category.slug}</code>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant={(category as any).isActive !== false ? "default" : "secondary"} className="text-xs">
+                                      {(category as any).isActive !== false ? "Aktif" : "Pasif"}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    {((category as any).sortOrder || 0) > 0 && (
+                                      <Badge variant="outline" className="text-xs">
+                                        #{(category as any).sortOrder}
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center space-x-1">
+                                      <LucideIcons.FileText className="w-4 h-4 text-blue-500" />
+                                      <span>{category.newsCount || 0}</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {new Date(category.createdAt).toLocaleDateString('tr-TR')}
+                                  </TableCell>
+                                  <TableCell>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                          <LucideIcons.MoreVertical className="w-4 h-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEditCategory(category)}>
+                                          <LucideIcons.Edit className="w-4 h-4 mr-2" />
+                                          Düzenle
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem 
+                                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                                          disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
+                                          className="text-destructive"
+                                        >
+                                          <LucideIcons.Trash className="w-4 h-4 mr-2" />
+                                          Sil
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </Draggable>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
-                  </div>
-                  
-                  {category.description && (
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {category.description}
-                    </p>
                   )}
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <LucideIcons.FileText className="w-4 h-4 mr-1" />
-                      <span>{category.newsCount || 0} haber</span>
-                    </div>
-                    
-                    {category.parentId && (
-                      <Badge variant="outline" className="text-xs">
-                        Alt Kategori
-                      </Badge>
-                    )}
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-            </>
-          )}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </CardContent>
       </Card>
 
-      {/* Professional Category Modal */}
+      {/* Add/Edit Category Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <LucideIcons.Tag className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl">
-                  {selectedCategory ? 'Kategoriyi Düzenle' : 'Yeni Kategori Oluştur'}
-                </DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {selectedCategory 
-                    ? 'Kategori bilgilerini güncelleyin ve değişiklikleri kaydedin' 
-                    : 'Yeni bir kategori oluşturun ve haber organizasyonunuzu geliştirin'
-                  }
-                </p>
-              </div>
-            </div>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedCategory ? 'Kategori Düzenle' : 'Yeni Kategori Ekle'}
+            </DialogTitle>
           </DialogHeader>
-
+          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Basic Information Section */}
+              {/* Basic Information */}
               <div className="space-y-4">
-                <div className="flex items-center space-x-2 pb-2 border-b">
-                  <LucideIcons.Info className="w-4 h-4 text-primary" />
-                  <h3 className="font-medium">Temel Bilgiler</h3>
-                </div>
-
+                <h3 className="text-lg font-medium">Temel Bilgiler</h3>
+                <Separator />
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center space-x-2">
-                          <LucideIcons.Type className="w-4 h-4" />
-                          <span>Kategori Adı</span>
-                          <span className="text-red-500">*</span>
-                        </FormLabel>
+                        <FormLabel>Kategori Adı *</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Örn: Teknoloji, Spor, Ekonomi..."
-                            className="h-11"
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e);
-                              handleNameChange(e.target.value);
-                            }}
+                          <Input 
+                            {...field} 
+                            placeholder="Örn: Teknoloji"
+                            onChange={(e) => handleNameChange(e.target.value)}
+                            className="min-h-[44px]"
                           />
                         </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          Kategori için açıklayıcı bir ad girin
-                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -700,38 +637,18 @@ export default function Categories() {
                     name="slug"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center space-x-2">
-                          <LucideIcons.Link className="w-4 h-4" />
-                          <span>URL Slug</span>
-                          <span className="text-red-500">*</span>
-                        </FormLabel>
+                        <FormLabel>URL Slug *</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                              /
-                            </span>
-                            <Input 
-                              placeholder="teknoloji-haberleri" 
-                              className="h-11 pl-6 font-mono text-sm"
-                              {...field} 
-                            />
-                          </div>
+                          <Input 
+                            {...field} 
+                            placeholder="teknoloji"
+                            className="min-h-[44px] font-mono"
+                          />
                         </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          URL'de görünecek benzersiz kimlik
-                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-              </div>
-
-              {/* Description Section */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 pb-2 border-b">
-                  <LucideIcons.FileText className="w-4 h-4 text-primary" />
-                  <h3 className="font-medium">Açıklama ve Detaylar</h3>
                 </div>
 
                 <FormField
@@ -739,64 +656,42 @@ export default function Categories() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center space-x-2">
-                        <LucideIcons.AlignLeft className="w-4 h-4" />
-                        <span>Kategori Açıklaması</span>
-                      </FormLabel>
+                      <FormLabel>Açıklama</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Bu kategori hangi tür haberleri içerir? Okuyucular için açıklayıcı bir tanım yazın..."
-                          className="min-h-[100px] resize-none"
+                        <Textarea 
                           {...field}
+                          placeholder="Kategori hakkında kısa açıklama..."
+                          className="min-h-[100px] resize-none"
                         />
                       </FormControl>
-                      <p className="text-xs text-muted-foreground">
-                        SEO ve kullanıcı deneyimi için önemlidir (isteğe bağlı)
-                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              {/* Status and Organization Section */}
+              {/* Settings */}
               <div className="space-y-4">
-                <div className="flex items-center space-x-2 pb-2 border-b">
-                  <LucideIcons.Settings className="w-4 h-4 text-primary" />
-                  <h3 className="font-medium">Durum ve Organizasyon</h3>
-                </div>
-
+                <h3 className="text-lg font-medium">Ayarlar</h3>
+                <Separator />
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="parentId"
+                    name="sortOrder"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center space-x-2">
-                          <LucideIcons.GitBranch className="w-4 h-4" />
-                          <span>Üst Kategori</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={(value) => field.onChange(value === "0" ? null : parseInt(value))}
-                          value={field.value?.toString() || "0"}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Ana kategori olacak" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="0">Ana Kategori</SelectItem>
-                            {categories?.map((category) => (
-                              <SelectItem key={category.id} value={category.id.toString()}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                          Boş bırakırsanız ana kategori olur
-                        </p>
+                        <FormLabel>Sıra Numarası</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field}
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            className="min-h-[44px]"
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -806,128 +701,48 @@ export default function Categories() {
                     control={form.control}
                     name="isActive"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center space-x-2">
-                          <LucideIcons.Power className="w-4 h-4" />
-                          <span>Kategori Durumu</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={(value) => field.onChange(value === 'true')}
-                          value={field.value?.toString() || 'true'}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="true">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span>Aktif</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="false">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                <span>Pasif</span>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                          Pasif kategoriler gizlenir
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="sortOrder"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center space-x-2">
-                          <LucideIcons.ArrowUpDown className="w-4 h-4" />
-                          <span>Sıralama Numarası</span>
-                        </FormLabel>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Aktif Durum</FormLabel>
+                          <div className="text-sm text-muted-foreground">
+                            Kategori aktif olsun mu?
+                          </div>
+                        </div>
                         <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            min="0"
-                            step="1"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            value={field.value || 0}
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <p className="text-xs text-muted-foreground">
-                          Küçük sayı önce gösterilir (0, 1, 2...)
-                        </p>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <div className="space-y-3">
-                    <Label className="flex items-center space-x-2">
-                      <LucideIcons.Link className="w-4 h-4" />
-                      <span>URL Önizlemesi</span>
-                    </Label>
-                    <div className="bg-muted/50 p-3 rounded-lg border">
-                      <p className="text-sm text-muted-foreground mb-1">Kategori URL'i:</p>
-                      <code className="text-sm font-mono bg-background px-2 py-1 rounded border">
-                        /kategori/{form.watch('slug') || 'kategori-url'}
-                      </code>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-3 pt-6 border-t">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <LucideIcons.Shield className="w-4 h-4" />
-                  <span>Tüm alanlar güvenli şekilde saklanır</span>
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsModalOpen(false)}
-                    className="min-w-[100px]"
-                  >
-                    <LucideIcons.X className="w-4 h-4 mr-2" />
-                    İptal
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createCategoryMutation.isPending}
-                    className="min-w-[120px]"
-                  >
-                    {createCategoryMutation.isPending ? (
-                      <>
-                        <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
-                        Kaydediliyor...
-                      </>
-                    ) : selectedCategory ? (
-                      <>
-                        <LucideIcons.Save className="w-4 h-4 mr-2" />
-                        Güncelle
-                      </>
-                    ) : (
-                      <>
-                        <LucideIcons.Plus className="w-4 h-4 mr-2" />
-                        Oluştur
-                      </>
-                    )}
-                  </Button>
-                </div>
+              <div className="flex justify-end space-x-4 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  className="min-h-[44px]"
+                >
+                  İptal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createCategoryMutation.isPending}
+                  className="min-h-[44px]"
+                >
+                  {createCategoryMutation.isPending ? (
+                    <>
+                      <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    selectedCategory ? 'Güncelle' : 'Oluştur'
+                  )}
+                </Button>
               </div>
             </form>
           </Form>

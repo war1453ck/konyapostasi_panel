@@ -159,6 +159,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Category reorder endpoint
+  app.post("/api/categories/reorder", async (req, res) => {
+    try {
+      const reorderSchema = z.object({
+        categoryOrders: z.array(z.object({
+          id: z.number(),
+          sortOrder: z.number()
+        }))
+      });
+      
+      const { categoryOrders } = reorderSchema.parse(req.body);
+      await storage.reorderCategories(categoryOrders);
+      res.json({ message: "Kategoriler başarıyla sıralandı" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Geçersiz veri", errors: error.errors });
+      }
+      res.status(500).json({ message: "Kategori sıralaması güncellenirken hata oluştu" });
+    }
+  });
+
   // News endpoints
   app.get("/api/news", async (req, res) => {
     try {
