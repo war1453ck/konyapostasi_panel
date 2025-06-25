@@ -113,6 +113,35 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
   const onSubmit = (data: InsertNews) => {
     console.log('Form verisi:', data);
+    
+    // Required field validation
+    if (!data.title?.trim()) {
+      toast({
+        title: 'Hata',
+        description: 'Haber başlığı gereklidir',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!data.content?.trim()) {
+      toast({
+        title: 'Hata',
+        description: 'Haber içeriği gereklidir',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!data.categoryId) {
+      toast({
+        title: 'Hata',
+        description: 'Kategori seçimi gereklidir',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     createNewsMutation.mutate(data);
   };
 
