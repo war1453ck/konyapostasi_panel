@@ -29,9 +29,9 @@ export default function ClassifiedAds() {
   const [selectedAd, setSelectedAd] = useState<ClassifiedAdWithApprover | null>(null);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
   const [filters, setFilters] = useState({
-    status: '',
-    category: '',
-    isPremium: '',
+    status: 'all',
+    category: 'all',
+    isPremium: 'all',
     search: ''
   });
 
@@ -42,9 +42,9 @@ export default function ClassifiedAds() {
     queryKey: ['/api/classified-ads', filters.status, filters.category, filters.isPremium],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (filters.status) params.append('status', filters.status);
-      if (filters.category) params.append('category', filters.category);
-      if (filters.isPremium) params.append('isPremium', filters.isPremium);
+      if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+      if (filters.category && filters.category !== 'all') params.append('category', filters.category);
+      if (filters.isPremium && filters.isPremium !== 'all') params.append('isPremium', filters.isPremium);
       
       const response = await fetch(`/api/classified-ads?${params.toString()}`, {
         credentials: 'include'
@@ -264,7 +264,7 @@ export default function ClassifiedAds() {
                 <SelectValue placeholder="Durum" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tümü</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
                 <SelectItem value="pending">Beklemede</SelectItem>
                 <SelectItem value="approved">Onaylı</SelectItem>
                 <SelectItem value="rejected">Reddedildi</SelectItem>
@@ -276,7 +276,7 @@ export default function ClassifiedAds() {
                 <SelectValue placeholder="Kategori" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tümü</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
                 <SelectItem value="vehicles">Araçlar</SelectItem>
                 <SelectItem value="real-estate">Emlak</SelectItem>
                 <SelectItem value="electronics">Elektronik</SelectItem>
@@ -288,7 +288,7 @@ export default function ClassifiedAds() {
                 <SelectValue placeholder="Tip" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tümü</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
                 <SelectItem value="true">Premium</SelectItem>
                 <SelectItem value="false">Standart</SelectItem>
               </SelectContent>

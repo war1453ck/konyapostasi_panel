@@ -1167,6 +1167,154 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  // Articles
+  async getArticle(id: number): Promise<ArticleWithDetails | undefined> {
+    const result = await db
+      .select({
+        article: articles,
+        author: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        }
+      })
+      .from(articles)
+      .leftJoin(users, eq(articles.authorId, users.id))
+      .leftJoin(categories, eq(articles.categoryId, categories.id))
+      .where(eq(articles.id, id));
+
+    if (result.length === 0) return undefined;
+
+    const { article, author, category } = result[0];
+    return {
+      ...article,
+      author: author!,
+      category: category!
+    };
+  }
+
+  async getArticleBySlug(slug: string): Promise<ArticleWithDetails | undefined> {
+    const result = await db
+      .select({
+        article: articles,
+        author: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          username: users.username,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        }
+      })
+      .from(articles)
+      .leftJoin(users, eq(articles.authorId, users.id))
+      .leftJoin(categories, eq(articles.categoryId, categories.id))
+      .where(eq(articles.slug, slug));
+
+    if (result.length === 0) return undefined;
+
+    const { article, author, category } = result[0];
+    return {
+      ...article,
+      author: author!,
+      category: category!
+    };
+  }
+
+  async createArticle(insertArticle: InsertArticle): Promise<Article> {
+    const [article] = await db
+      .insert(articles)
+      .values(insertArticle)
+      .returning();
+    return article;
+  }
+
+  async updateArticle(id: number, articleUpdate: Partial<InsertArticle>): Promise<Article | undefined> {
+    const [article] = await db
+      .update(articles)
+      .set({
+        ...articleUpdate,
+        updatedAt: new Date(),
+      })
+      .where(eq(articles.id, id))
+      .returning();
+    return article || undefined;
+  }
+
+  async getAllArticles(filters?: { status?: string; categoryId?: number; authorId?: number }): Promise<ArticleWithDetails[]> {
+    let whereConditions = [];
+    if (filters?.status) {
+      whereConditions.push(eq(articles.status, filters.status as any));
+    }
+    if (filters?.categoryId) {
+      whereConditions.push(eq(articles.categoryId, filters.categoryId));
+    }
+    if (filters?.authorId) {
+      whereConditions.push(eq(articles.authorId, filters.authorId));
+    }
+
+    const result = whereConditions.length > 0
+      ? await db
+        .select({
+          article: articles,
+          author: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            username: users.username,
+          },
+          category: {
+            id: categories.id,
+            name: categories.name,
+            slug: categories.slug,
+          }
+        })
+        .from(articles)
+        .leftJoin(users, eq(articles.authorId, users.id))
+        .leftJoin(categories, eq(articles.categoryId, categories.id))
+        .where(and(...whereConditions))
+        .orderBy(desc(articles.createdAt))
+      : await db
+        .select({
+          article: articles,
+          author: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            username: users.username,
+          },
+          category: {
+            id: categories.id,
+            name: categories.name,
+            slug: categories.slug,
+          }
+        })
+        .from(articles)
+        .leftJoin(users, eq(articles.authorId, users.id))
+        .leftJoin(categories, eq(articles.categoryId, categories.id))
+        .orderBy(desc(articles.createdAt));
+
+    return result.map(({ article, author, category }) => ({
+      ...article,
+      author: author!,
+      category: category!
+    }));
+  }
+
+  async deleteArticle(id: number): Promise<boolean> {
+    const result = await db.delete(articles).where(eq(articles.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // News
   async getNews(id: number): Promise<NewsWithDetails | undefined> {
     const result = await db

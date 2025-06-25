@@ -77,7 +77,7 @@ export function ClassifiedAdModal({ isOpen, onClose, classifiedAd }: ClassifiedA
       title: '',
       description: '',
       category: 'vehicles',
-      subcategory: '',
+      subcategory: 'cars',
       price: '',
       currency: 'TRY',
       location: '',
@@ -151,7 +151,7 @@ export function ClassifiedAdModal({ isOpen, onClose, classifiedAd }: ClassifiedA
         title: classifiedAd.title,
         description: classifiedAd.description,
         category: classifiedAd.category,
-        subcategory: classifiedAd.subcategory || '',
+        subcategory: classifiedAd.subcategory || 'cars',
         price: classifiedAd.price || '',
         currency: classifiedAd.currency,
         location: classifiedAd.location || '',
@@ -169,7 +169,7 @@ export function ClassifiedAdModal({ isOpen, onClose, classifiedAd }: ClassifiedA
         title: '',
         description: '',
         category: 'vehicles',
-        subcategory: '',
+        subcategory: 'cars',
         price: '',
         currency: 'TRY',
         location: '',
@@ -290,7 +290,9 @@ export function ClassifiedAdModal({ isOpen, onClose, classifiedAd }: ClassifiedA
                           <SelectItem key={subcategory} value={subcategory}>
                             {subcategory}
                           </SelectItem>
-                        ))}
+                        )) || (
+                          <SelectItem value="default">Varsayılan</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
