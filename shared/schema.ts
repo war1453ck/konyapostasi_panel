@@ -179,6 +179,14 @@ export type CommentWithNews = Comment & {
   news: Pick<News, 'id' | 'title' | 'slug'>;
 };
 
+export type AdvertisementWithCreator = Advertisement & {
+  creator: Pick<User, 'id' | 'firstName' | 'lastName' | 'username'>;
+};
+
+export type ClassifiedAdWithApprover = ClassifiedAd & {
+  approver?: Pick<User, 'id' | 'firstName' | 'lastName' | 'username'>;
+};
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   news: many(news),

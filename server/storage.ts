@@ -65,12 +65,34 @@ export interface IStorage {
   getAllMedia(): Promise<Media[]>;
   deleteMedia(id: number): Promise<boolean>;
 
+  // Advertisements
+  getAdvertisement(id: number): Promise<AdvertisementWithCreator | undefined>;
+  createAdvertisement(advertisement: InsertAdvertisement): Promise<Advertisement>;
+  updateAdvertisement(id: number, advertisement: Partial<InsertAdvertisement>): Promise<Advertisement | undefined>;
+  getAllAdvertisements(filters?: { isActive?: boolean; position?: string }): Promise<AdvertisementWithCreator[]>;
+  deleteAdvertisement(id: number): Promise<boolean>;
+  incrementAdClicks(id: number): Promise<void>;
+  incrementAdImpressions(id: number): Promise<void>;
+
+  // Classified Ads
+  getClassifiedAd(id: number): Promise<ClassifiedAdWithApprover | undefined>;
+  createClassifiedAd(classifiedAd: InsertClassifiedAd): Promise<ClassifiedAd>;
+  updateClassifiedAd(id: number, classifiedAd: Partial<InsertClassifiedAd>): Promise<ClassifiedAd | undefined>;
+  getAllClassifiedAds(filters?: { status?: string; category?: string; isPremium?: boolean }): Promise<ClassifiedAdWithApprover[]>;
+  deleteClassifiedAd(id: number): Promise<boolean>;
+  approveClassifiedAd(id: number, approverId: number): Promise<ClassifiedAd | undefined>;
+  rejectClassifiedAd(id: number): Promise<ClassifiedAd | undefined>;
+  incrementClassifiedAdViews(id: number): Promise<void>;
+
   // Analytics
   getStats(): Promise<{
     totalNews: number;
     activeWriters: number;
     pendingComments: number;
     todayViews: number;
+    totalAds: number;
+    activeAds: number;
+    pendingClassifieds: number;
   }>;
 }
 
@@ -82,6 +104,8 @@ export class MemStorage implements IStorage {
   private articles: Map<number, Article>;
   private comments: Map<number, Comment>;
   private media: Map<number, Media>;
+  private advertisements: Map<number, Advertisement>;
+  private classifiedAds: Map<number, ClassifiedAd>;
   private currentUserId: number;
   private currentCategoryId: number;
   private currentCityId: number;
@@ -89,6 +113,8 @@ export class MemStorage implements IStorage {
   private currentArticleId: number;
   private currentCommentId: number;
   private currentMediaId: number;
+  private currentAdvertisementId: number;
+  private currentClassifiedAdId: number;
 
   constructor() {
     this.users = new Map();
@@ -176,6 +202,104 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.cities.set(izmirCity.id, izmirCity);
+
+    // Initialize sample advertisements
+    const headerAd: Advertisement = {
+      id: ++this.currentAdvertisementId,
+      title: "Premium Header Reklamı",
+      description: "Bu bir örnek header reklamıdır",
+      imageUrl: "https://via.placeholder.com/728x90/007bff/ffffff?text=Header+Banner",
+      linkUrl: "https://example.com",
+      position: "header",
+      size: "banner",
+      isActive: true,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      clickCount: 15,
+      impressions: 250,
+      priority: 1,
+      createdBy: adminUser.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const sidebarAd: Advertisement = {
+      id: ++this.currentAdvertisementId,
+      title: "Yan Panel Reklamı",
+      description: "Sidebar için tasarlanmış reklam",
+      imageUrl: "https://via.placeholder.com/300x250/28a745/ffffff?text=Sidebar+Ad",
+      linkUrl: "https://example.com/sidebar",
+      position: "sidebar",
+      size: "rectangle",
+      isActive: true,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
+      clickCount: 8,
+      impressions: 180,
+      priority: 2,
+      createdBy: adminUser.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.advertisements.set(headerAd.id, headerAd);
+    this.advertisements.set(sidebarAd.id, sidebarAd);
+
+    // Initialize sample classified ads
+    const carAd: ClassifiedAd = {
+      id: ++this.currentClassifiedAdId,
+      title: "2020 Model Toyota Corolla Satılık",
+      description: "Az kullanılmış, bakımlı, hasarsız Toyota Corolla. Tüm bakımları zamanında yapılmış. Görüşmeye açık.",
+      category: "vehicles",
+      subcategory: "cars",
+      price: "450000",
+      currency: "TRY",
+      location: "İstanbul, Kadıköy",
+      contactName: "Ahmet Yılmaz",
+      contactPhone: "+90 555 123 4567",
+      contactEmail: "ahmet.yilmaz@example.com",
+      images: [
+        "https://via.placeholder.com/400x300/007bff/ffffff?text=Car+Photo+1",
+        "https://via.placeholder.com/400x300/28a745/ffffff?text=Car+Photo+2"
+      ],
+      status: "approved",
+      isPremium: true,
+      isUrgent: false,
+      viewCount: 45,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      approvedBy: adminUser.id,
+      approvedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const houseAd: ClassifiedAd = {
+      id: ++this.currentClassifiedAdId,
+      title: "Kiralık 3+1 Daire - Deniz Manzaralı",
+      description: "Deniz manzaralı, merkezi konumda, 120m² 3+1 daire kiralık. Eşyalı, asansörlü bina.",
+      category: "real-estate",
+      subcategory: "rent",
+      price: "8500",
+      currency: "TRY",
+      location: "İzmir, Alsancak",
+      contactName: "Fatma Demir",
+      contactPhone: "+90 555 987 6543",
+      contactEmail: "fatma.demir@example.com",
+      images: [
+        "https://via.placeholder.com/400x300/ffc107/000000?text=House+Photo+1",
+        "https://via.placeholder.com/400x300/dc3545/ffffff?text=House+Photo+2"
+      ],
+      status: "pending",
+      isPremium: false,
+      isUrgent: true,
+      viewCount: 22,
+      expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.classifiedAds.set(carAd.id, carAd);
+    this.classifiedAds.set(houseAd.id, houseAd);
   }
 
   // Users
