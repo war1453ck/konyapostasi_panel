@@ -21,7 +21,10 @@ export const categories = pgTable("categories", {
   slug: text("slug").notNull().unique(),
   description: text("description"),
   parentId: integer("parent_id"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const cities = pgTable("cities", {

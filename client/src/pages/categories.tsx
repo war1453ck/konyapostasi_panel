@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -54,16 +55,20 @@ type CategoryFormData = {
   slug: string;
   description?: string;
   parentId?: number | null;
+  sortOrder?: number;
+  isActive?: boolean;
 };
 
-type SortOption = 'name' | 'newsCount' | 'createdAt';
+type SortOption = 'name' | 'newsCount' | 'createdAt' | 'sortOrder';
 type ViewMode = 'cards' | 'table';
+type StatusFilter = 'all' | 'active' | 'inactive';
 
 export default function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithChildren | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -75,6 +80,8 @@ export default function Categories() {
       slug: '',
       description: '',
       parentId: null,
+      sortOrder: 0,
+      isActive: true,
     },
   });
 
@@ -162,6 +169,8 @@ export default function Categories() {
       slug: category.slug,
       description: category.description || '',
       parentId: category.parentId,
+      sortOrder: (category as any).sortOrder || 0,
+      isActive: (category as any).isActive !== undefined ? (category as any).isActive : true,
     });
     setIsModalOpen(true);
   };
@@ -183,12 +192,22 @@ export default function Categories() {
 
   // Filter and sort categories
   const filteredAndSortedCategories = categories
-    .filter(category =>
-      category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    )
+    .filter(category => {
+      // Text search filter
+      const matchesSearch = category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || 
+        (statusFilter === 'active' && (category as any).isActive !== false) ||
+        (statusFilter === 'inactive' && (category as any).isActive === false);
+      
+      return matchesSearch && matchesStatus;
+    })
     .sort((a, b) => {
       switch (sortBy) {
+        case 'sortOrder':
+          return ((a as any).sortOrder || 0) - ((b as any).sortOrder || 0);
         case 'name':
           return a.name.localeCompare(b.name, 'tr');
         case 'newsCount':
@@ -305,11 +324,33 @@ export default function Categories() {
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
+              <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                <SelectTrigger className="w-full sm:w-40 min-h-[44px]">
+                  <SelectValue placeholder="Durum" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tüm Durumlar</SelectItem>
+                  <SelectItem value="active">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Aktif</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="inactive">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <span>Pasif</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
                 <SelectTrigger className="w-full sm:w-48 min-h-[44px]">
                   <SelectValue placeholder="Sırala" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="sortOrder">Sıralama (0-9)</SelectItem>
                   <SelectItem value="name">Ad (A-Z)</SelectItem>
                   <SelectItem value="newsCount">Haber Sayısı</SelectItem>
                   <SelectItem value="createdAt">Tarih (Yeni)</SelectItem>
@@ -375,6 +416,16 @@ export default function Categories() {
                             <h3 className="font-semibold text-lg truncate group-hover:text-primary transition-colors">
                               {category.name}
                             </h3>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant={(category as any).isActive !== false ? "default" : "secondary"} className="text-xs">
+                                {(category as any).isActive !== false ? "Aktif" : "Pasif"}
+                              </Badge>
+                              {((category as any).sortOrder || 0) > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  #{(category as any).sortOrder}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <p className="text-sm text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">
                             /{category.slug}
@@ -443,6 +494,8 @@ export default function Categories() {
                 <TableRow>
                   <TableHead>Kategori Adı</TableHead>
                   <TableHead>Slug</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead>Sıra</TableHead>
                   <TableHead>Açıklama</TableHead>
                   <TableHead>Haber Sayısı</TableHead>
                   <TableHead>İşlemler</TableHead>
@@ -451,7 +504,7 @@ export default function Categories() {
               <TableBody>
                 {filteredAndSortedCategories.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={7} className="text-center py-8">
                       <div className="text-muted-foreground">
                         <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
                         {searchQuery ? 'Arama kriterine uygun kategori bulunamadı' : 'Henüz kategori bulunmuyor'}
@@ -463,6 +516,19 @@ export default function Categories() {
                     <TableRow key={category.id}>
                       <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell className="text-muted-foreground">{category.slug}</TableCell>
+                      <TableCell>
+                        <Badge variant={(category as any).isActive !== false ? "default" : "secondary"} className="text-xs">
+                          {(category as any).isActive !== false ? "Aktif" : "Pasif"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <LucideIcons.ArrowUpDown className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-sm font-mono">
+                            {(category as any).sortOrder || 0}
+                          </span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm">
                         {category.description?.substring(0, 50)}
                         {category.description && category.description.length > 50 && '...'}
@@ -691,6 +757,135 @@ export default function Categories() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Status and Organization Section */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 pb-2 border-b">
+                  <LucideIcons.Settings className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium">Durum ve Organizasyon</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="parentId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <LucideIcons.GitBranch className="w-4 h-4" />
+                          <span>Üst Kategori</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={(value) => field.onChange(value === "0" ? null : parseInt(value))}
+                          value={field.value?.toString() || "0"}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Ana kategori olacak" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="0">Ana Kategori</SelectItem>
+                            {categories?.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Boş bırakırsanız ana kategori olur
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="isActive"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <LucideIcons.Power className="w-4 h-4" />
+                          <span>Kategori Durumu</span>
+                        </FormLabel>
+                        <Select
+                          onValueChange={(value) => field.onChange(value === 'true')}
+                          value={field.value?.toString() || 'true'}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="true">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span>Aktif</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="false">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                <span>Pasif</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Pasif kategoriler gizlenir
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="sortOrder"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <LucideIcons.ArrowUpDown className="w-4 h-4" />
+                          <span>Sıralama Numarası</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            min="0"
+                            step="1"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                            value={field.value || 0}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Küçük sayı önce gösterilir (0, 1, 2...)
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-3">
+                    <Label className="flex items-center space-x-2">
+                      <LucideIcons.Link className="w-4 h-4" />
+                      <span>URL Önizlemesi</span>
+                    </Label>
+                    <div className="bg-muted/50 p-3 rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-1">Kategori URL'i:</p>
+                      <code className="text-sm font-mono bg-background px-2 py-1 rounded border">
+                        /kategori/{form.watch('slug') || 'kategori-url'}
+                      </code>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons */}

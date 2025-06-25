@@ -192,6 +192,10 @@ This is a full-stack news content management system built with React, Express, a
 - Dropdown menus for space-efficient actions
 - Advanced slug generation with URL preview
 - Professional loading states and error handling
+- Status management (Active/Inactive) with visual indicators
+- Manual sort ordering for custom category arrangement
+- Advanced filtering by status and sort order
+- Enhanced card and table views displaying status and order information
 
 ✓ **News Sources Management System** (June 25, 2025)
 - Comprehensive news source categorization module
