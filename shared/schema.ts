@@ -24,7 +24,39 @@ export const categories = pgTable("categories", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const cities = pgTable("cities", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const news = pgTable("news", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  summary: text("summary"),
+  content: text("content").notNull(),
+  featuredImage: text("featured_image"),
+  videoUrl: text("video_url"),
+  videoThumbnail: text("video_thumbnail"),
+  source: text("source"),
+  status: text("status", { enum: ["draft", "review", "published", "scheduled"] }).notNull().default("draft"),
+  authorId: integer("author_id").notNull(),
+  editorId: integer("editor_id"),
+  categoryId: integer("category_id").notNull(),
+  cityId: integer("city_id"),
+  viewCount: integer("view_count").notNull().default(0),
+  publishedAt: timestamp("published_at"),
+  scheduledAt: timestamp("scheduled_at"),
+  metaTitle: text("meta_title"),
+  metaDescription: text("meta_description"),
+  keywords: text("keywords"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const articles = pgTable("articles", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
@@ -75,7 +107,19 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   createdAt: true,
 });
 
+export const insertCitySchema = createInsertSchema(cities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertNewsSchema = createInsertSchema(news).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  viewCount: true,
+});
+
+export const insertArticleSchema = createInsertSchema(articles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -101,6 +145,12 @@ export type Category = typeof categories.$inferSelect;
 export type InsertNews = z.infer<typeof insertNewsSchema>;
 export type News = typeof news.$inferSelect;
 
+export type InsertArticle = z.infer<typeof insertArticleSchema>;
+export type Article = typeof articles.$inferSelect;
+
+export type InsertCity = z.infer<typeof insertCitySchema>;
+export type City = typeof cities.$inferSelect;
+
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Comment = typeof comments.$inferSelect;
 
@@ -109,6 +159,13 @@ export type Media = typeof media.$inferSelect;
 
 // Extended types for API responses
 export type NewsWithDetails = News & {
+  author: Pick<User, 'id' | 'firstName' | 'lastName' | 'username'>;
+  editor?: Pick<User, 'id' | 'firstName' | 'lastName' | 'username'>;
+  category: Pick<Category, 'id' | 'name' | 'slug'>;
+  city?: Pick<City, 'id' | 'name' | 'slug'>;
+};
+
+export type ArticleWithDetails = Article & {
   author: Pick<User, 'id' | 'firstName' | 'lastName' | 'username'>;
   category: Pick<Category, 'id' | 'name' | 'slug'>;
 };

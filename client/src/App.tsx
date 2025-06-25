@@ -8,6 +8,7 @@ import { Layout } from "@/components/layout/layout";
 import Dashboard from "@/pages/dashboard";
 import NewsList from "@/pages/news/news-list";
 import NewsForm from "@/pages/news/news-form";
+import Articles from "@/pages/articles";
 import Categories from "@/pages/categories";
 import Users from "@/pages/users";
 import Media from "@/pages/media";
@@ -24,6 +25,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/news" component={NewsList} />
         <Route path="/news/new" component={NewsForm} />
+        <Route path="/articles" component={Articles} />
         <Route path="/categories" component={Categories} />
         <Route path="/users" component={Users} />
         <Route path="/media" component={Media} />

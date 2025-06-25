@@ -27,6 +27,22 @@ export interface IStorage {
   getAllCategories(): Promise<CategoryWithChildren[]>;
   deleteCategory(id: number): Promise<boolean>;
 
+  // Cities
+  getCity(id: number): Promise<City | undefined>;
+  getCityBySlug(slug: string): Promise<City | undefined>;
+  createCity(city: InsertCity): Promise<City>;
+  updateCity(id: number, city: Partial<InsertCity>): Promise<City | undefined>;
+  getAllCities(): Promise<City[]>;
+  deleteCity(id: number): Promise<boolean>;
+
+  // Articles
+  getArticle(id: number): Promise<ArticleWithDetails | undefined>;
+  getArticleBySlug(slug: string): Promise<ArticleWithDetails | undefined>;
+  createArticle(article: InsertArticle): Promise<Article>;
+  updateArticle(id: number, article: Partial<InsertArticle>): Promise<Article | undefined>;
+  getAllArticles(filters?: { status?: string; categoryId?: number; authorId?: number }): Promise<ArticleWithDetails[]>;
+  deleteArticle(id: number): Promise<boolean>;
+
   // News
   getNews(id: number): Promise<NewsWithDetails | undefined>;
   getNewsBySlug(slug: string): Promise<NewsWithDetails | undefined>;
@@ -61,12 +77,16 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private categories: Map<number, Category>;
+  private cities: Map<number, City>;
   private news: Map<number, News>;
+  private articles: Map<number, Article>;
   private comments: Map<number, Comment>;
   private media: Map<number, Media>;
   private currentUserId: number;
   private currentCategoryId: number;
+  private currentCityId: number;
   private currentNewsId: number;
+  private currentArticleId: number;
   private currentCommentId: number;
   private currentMediaId: number;
 
@@ -131,6 +151,31 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.categories.set(sportsCategory.id, sportsCategory);
+
+    // Initialize cities
+    const istanbulCity: City = {
+      id: this.currentCityId++,
+      name: "İstanbul",
+      slug: "istanbul",
+      createdAt: new Date()
+    };
+    this.cities.set(istanbulCity.id, istanbulCity);
+
+    const ankaraCity: City = {
+      id: this.currentCityId++,
+      name: "Ankara",
+      slug: "ankara",
+      createdAt: new Date()
+    };
+    this.cities.set(ankaraCity.id, ankaraCity);
+
+    const izmirCity: City = {
+      id: this.currentCityId++,
+      name: "İzmir",
+      slug: "izmir",
+      createdAt: new Date()
+    };
+    this.cities.set(izmirCity.id, izmirCity);
   }
 
   // Users
@@ -174,6 +219,138 @@ export class MemStorage implements IStorage {
 
   async deleteUser(id: number): Promise<boolean> {
     return this.users.delete(id);
+  }
+
+  // Cities
+  async getCity(id: number): Promise<City | undefined> {
+    return this.cities.get(id);
+  }
+
+  async getCityBySlug(slug: string): Promise<City | undefined> {
+    return Array.from(this.cities.values()).find(city => city.slug === slug);
+  }
+
+  async createCity(insertCity: InsertCity): Promise<City> {
+    const id = this.currentCityId++;
+    const city: City = { 
+      ...insertCity, 
+      id, 
+      createdAt: new Date() 
+    };
+    this.cities.set(id, city);
+    return city;
+  }
+
+  async updateCity(id: number, cityUpdate: Partial<InsertCity>): Promise<City | undefined> {
+    const city = this.cities.get(id);
+    if (!city) return undefined;
+    
+    const updatedCity = { ...city, ...cityUpdate };
+    this.cities.set(id, updatedCity);
+    return updatedCity;
+  }
+
+  async getAllCities(): Promise<City[]> {
+    return Array.from(this.cities.values());
+  }
+
+  async deleteCity(id: number): Promise<boolean> {
+    return this.cities.delete(id);
+  }
+
+  // Articles
+  async getArticle(id: number): Promise<ArticleWithDetails | undefined> {
+    const article = this.articles.get(id);
+    if (!article) return undefined;
+
+    const author = this.users.get(article.authorId);
+    const category = this.categories.get(article.categoryId);
+    
+    if (!author || !category) return undefined;
+
+    return {
+      ...article,
+      author: {
+        id: author.id,
+        firstName: author.firstName,
+        lastName: author.lastName,
+        username: author.username
+      },
+      category: {
+        id: category.id,
+        name: category.name,
+        slug: category.slug
+      }
+    };
+  }
+
+  async getArticleBySlug(slug: string): Promise<ArticleWithDetails | undefined> {
+    const article = Array.from(this.articles.values()).find(a => a.slug === slug);
+    if (!article) return undefined;
+    return this.getArticle(article.id);
+  }
+
+  async createArticle(insertArticle: InsertArticle): Promise<Article> {
+    const id = this.currentArticleId++;
+    const now = new Date();
+    const article: Article = { 
+      ...insertArticle, 
+      id,
+      viewCount: 0,
+      createdAt: now,
+      updatedAt: now,
+      status: insertArticle.status || 'draft',
+      summary: insertArticle.summary ?? null,
+      metaTitle: insertArticle.metaTitle ?? null,
+      metaDescription: insertArticle.metaDescription ?? null,
+      keywords: insertArticle.keywords ?? null,
+      featuredImage: insertArticle.featuredImage ?? null,
+      publishedAt: insertArticle.publishedAt ?? null,
+      scheduledAt: insertArticle.scheduledAt ?? null,
+    };
+    this.articles.set(id, article);
+    return article;
+  }
+
+  async updateArticle(id: number, articleUpdate: Partial<InsertArticle>): Promise<Article | undefined> {
+    const article = this.articles.get(id);
+    if (!article) return undefined;
+    
+    const updatedArticle = { 
+      ...article, 
+      ...articleUpdate,
+      updatedAt: new Date()
+    };
+    this.articles.set(id, updatedArticle);
+    return updatedArticle;
+  }
+
+  async getAllArticles(filters?: { status?: string; categoryId?: number; authorId?: number }): Promise<ArticleWithDetails[]> {
+    let allArticles = Array.from(this.articles.values());
+    
+    if (filters?.status && filters.status !== 'all') {
+      allArticles = allArticles.filter(article => article.status === filters.status);
+    }
+    if (filters?.categoryId) {
+      allArticles = allArticles.filter(article => article.categoryId === filters.categoryId);
+    }
+    if (filters?.authorId) {
+      allArticles = allArticles.filter(article => article.authorId === filters.authorId);
+    }
+
+    const articlesWithDetails: ArticleWithDetails[] = [];
+    for (const article of allArticles) {
+      const articleWithDetails = await this.getArticle(article.id);
+      if (articleWithDetails) {
+        articlesWithDetails.push(articleWithDetails);
+      }
+    }
+    
+    return articlesWithDetails;
+  }
+
+  async deleteArticle(id: number): Promise<boolean> {
+    return this.articles.delete(id);
   }
 
   // Categories
