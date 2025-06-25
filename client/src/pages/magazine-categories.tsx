@@ -121,10 +121,21 @@ export default function MagazineCategoriesPage() {
   });
 
   const deleteCategoryMutation = useMutation({
-    mutationFn: (id: number) =>
-      apiRequest(`/api/magazine-categories/${id}`, {
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/magazine-categories/${id}`, {
         method: 'DELETE',
-      }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Silme işlemi başarısız' }));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/magazine-categories'] });
       toast({
@@ -133,6 +144,7 @@ export default function MagazineCategoriesPage() {
       });
     },
     onError: (error: any) => {
+      console.error('Delete category error:', error);
       toast({
         title: 'Hata',
         description: error.message || 'Kategori silinirken bir hata oluştu',
