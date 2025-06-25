@@ -259,34 +259,41 @@ export default function Newspaper() {
   return (
     <div className="p-6 space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dijital Gazete</h1>
-          <p className="text-muted-foreground">Yerel gazetenizin sayfalarını yönetin</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dijital Gazete</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Yerel gazetenizin sayfalarını yönetin</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={() => setViewerMode(viewerMode === 'grid' ? 'viewer' : 'grid')}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            onClick={() => setViewerMode(viewerMode === 'grid' ? 'viewer' : 'grid')}
+            className="w-full sm:w-auto"
+          >
             {viewerMode === 'grid' ? (
               <>
                 <LucideIcons.BookOpen className="w-4 h-4 mr-2" />
-                Gazete Görünümü
+                <span className="hidden sm:inline">Gazete Görünümü</span>
+                <span className="sm:hidden">Gazete</span>
               </>
             ) : (
               <>
                 <LucideIcons.Grid className="w-4 h-4 mr-2" />
-                Liste Görünümü
+                <span className="hidden sm:inline">Liste Görünümü</span>
+                <span className="sm:hidden">Liste</span>
               </>
             )}
           </Button>
-          <Button onClick={handleCreatePage}>
+          <Button onClick={handleCreatePage} className="w-full sm:w-auto">
             <LucideIcons.Plus className="w-4 h-4 mr-2" />
-            Yeni Sayfa
+            <span className="hidden sm:inline">Yeni Sayfa</span>
+            <span className="sm:hidden">Ekle</span>
           </Button>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Toplam Sayfa</CardTitle>
@@ -362,7 +369,7 @@ export default function Newspaper() {
       </Card>
 
       {viewerMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
           {filteredPages.map((page) => (
             <Card key={page.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-[3/4] relative">
@@ -395,18 +402,18 @@ export default function Newspaper() {
                   </p>
                 )}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     {page.pdfUrl && (
                       <Button variant="outline" size="sm" asChild>
                         <a href={page.pdfUrl} target="_blank" rel="noopener noreferrer">
-                          <LucideIcons.Download className="w-3 h-3 mr-1" />
-                          PDF
+                          <LucideIcons.Download className="w-3 h-3 sm:mr-1" />
+                          <span className="hidden sm:inline">PDF</span>
                         </a>
                       </Button>
                     )}
                     <Button variant="outline" size="sm" onClick={() => window.open(page.imageUrl, '_blank')}>
-                      <LucideIcons.Eye className="w-3 h-3 mr-1" />
-                      Görüntüle
+                      <LucideIcons.Eye className="w-3 h-3 sm:mr-1" />
+                      <span className="hidden sm:inline">Görüntüle</span>
                     </Button>
                   </div>
                   <DropdownMenu>
@@ -438,7 +445,7 @@ export default function Newspaper() {
             <p className="text-lg">{formatDate(new Date())}</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {filteredPages.slice(0, 6).map((page) => (
               <div key={page.id} className="space-y-4">
                 <div className="aspect-[3/4] relative border rounded-lg overflow-hidden">
@@ -474,7 +481,7 @@ export default function Newspaper() {
 
       {/* Page Creation/Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>
               {selectedPage ? 'Gazete Sayfasını Düzenle' : 'Yeni Gazete Sayfası'}
@@ -482,8 +489,8 @@ export default function Newspaper() {
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <FormField
                   control={form.control}
                   name="title"
@@ -546,38 +553,39 @@ export default function Newspaper() {
                 />
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <FormField
                   control={form.control}
                   name="imageUrl"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sayfa Görseli</FormLabel>
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-4">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                           <Input
                             placeholder="Görsel dosyası yükleyin veya URL girin..."
                             {...field}
-                            className="flex-1"
+                            className="flex-1 min-w-0"
                           />
-                          <label htmlFor="image-upload">
+                          <label htmlFor="image-upload" className="flex-shrink-0">
                             <Button
                               type="button"
                               variant="outline"
                               disabled={uploadingImage}
-                              className="cursor-pointer"
+                              className="cursor-pointer w-full sm:w-auto"
                               asChild
                             >
                               <span>
                                 {uploadingImage ? (
                                   <>
                                     <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Yükleniyor...
+                                    <span className="hidden sm:inline">Yükleniyor...</span>
                                   </>
                                 ) : (
                                   <>
                                     <LucideIcons.Upload className="w-4 h-4 mr-2" />
-                                    Dosya Seç
+                                    <span className="hidden sm:inline">Dosya Seç</span>
+                                    <span className="sm:hidden">Görsel Seç</span>
                                   </>
                                 )}
                               </span>
@@ -595,7 +603,7 @@ export default function Newspaper() {
                           />
                         </div>
                         {field.value && (
-                          <div className="relative w-32 h-40 border rounded-lg overflow-hidden">
+                          <div className="relative w-24 h-32 sm:w-32 sm:h-40 border rounded-lg overflow-hidden">
                             <img
                               src={field.value}
                               alt="Önizleme"
@@ -605,10 +613,10 @@ export default function Newspaper() {
                               type="button"
                               variant="destructive"
                               size="sm"
-                              className="absolute top-1 right-1 w-6 h-6 p-0"
+                              className="absolute top-1 right-1 w-5 h-5 sm:w-6 sm:h-6 p-0"
                               onClick={() => field.onChange('')}
                             >
-                              <LucideIcons.X className="w-3 h-3" />
+                              <LucideIcons.X className="w-2 h-2 sm:w-3 sm:h-3" />
                             </Button>
                           </div>
                         )}
@@ -624,31 +632,32 @@ export default function Newspaper() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>PDF Dosyası (İsteğe Bağlı)</FormLabel>
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-4">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                           <Input
                             placeholder="PDF dosyası yükleyin veya URL girin..."
                             {...field}
-                            className="flex-1"
+                            className="flex-1 min-w-0"
                           />
-                          <label htmlFor="pdf-upload">
+                          <label htmlFor="pdf-upload" className="flex-shrink-0">
                             <Button
                               type="button"
                               variant="outline"
                               disabled={uploadingPdf}
-                              className="cursor-pointer"
+                              className="cursor-pointer w-full sm:w-auto"
                               asChild
                             >
                               <span>
                                 {uploadingPdf ? (
                                   <>
                                     <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Yükleniyor...
+                                    <span className="hidden sm:inline">Yükleniyor...</span>
                                   </>
                                 ) : (
                                   <>
                                     <LucideIcons.FileText className="w-4 h-4 mr-2" />
-                                    PDF Seç
+                                    <span className="hidden sm:inline">PDF Seç</span>
+                                    <span className="sm:hidden">PDF Seç</span>
                                   </>
                                 )}
                               </span>
@@ -667,8 +676,8 @@ export default function Newspaper() {
                         </div>
                         {field.value && (
                           <div className="flex items-center space-x-2 p-2 bg-muted rounded">
-                            <LucideIcons.FileText className="w-4 h-4" />
-                            <span className="text-sm flex-1">PDF yüklendi</span>
+                            <LucideIcons.FileText className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-sm flex-1 truncate">PDF yüklendi</span>
                             <Button
                               type="button"
                               variant="ghost"
@@ -704,11 +713,20 @@ export default function Newspaper() {
                 )}
               />
 
-              <div className="flex justify-end space-x-3">
-                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4 border-t">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-full sm:w-auto"
+                >
                   İptal
                 </Button>
-                <Button type="submit" disabled={createPageMutation.isPending || uploadingImage || uploadingPdf}>
+                <Button 
+                  type="submit" 
+                  disabled={createPageMutation.isPending || uploadingImage || uploadingPdf}
+                  className="w-full sm:w-auto"
+                >
                   {createPageMutation.isPending ? 'Kaydediliyor...' : 'Kaydet'}
                 </Button>
               </div>
