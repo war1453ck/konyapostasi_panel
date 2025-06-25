@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, varchar, decimal } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -97,6 +97,51 @@ export const media = pgTable("media", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Advertisement Module
+export const advertisements = pgTable("advertisements", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  linkUrl: text("link_url"),
+  position: varchar("position", { length: 50 }).notNull(), // header, sidebar, footer, content
+  size: varchar("size", { length: 50 }).notNull(), // banner, square, rectangle, skyscraper
+  isActive: boolean("is_active").default(true).notNull(),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  clickCount: integer("click_count").default(0).notNull(),
+  impressions: integer("impressions").default(0).notNull(),
+  priority: integer("priority").default(0).notNull(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Classified Ads Module
+export const classifiedAds = pgTable("classified_ads", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  subcategory: varchar("subcategory", { length: 100 }),
+  price: decimal("price", { precision: 10, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("TRY").notNull(),
+  location: varchar("location", { length: 255 }),
+  contactName: varchar("contact_name", { length: 255 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 20 }),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  images: text("images").array(),
+  status: varchar("status", { length: 20 }).default("pending").notNull(),
+  isPremium: boolean("is_premium").default(false).notNull(),
+  isUrgent: boolean("is_urgent").default(false).notNull(),
+  viewCount: integer("view_count").default(0).notNull(),
+  expiresAt: timestamp("expires_at"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -136,6 +181,23 @@ export const insertMediaSchema = createInsertSchema(media).omit({
   createdAt: true,
 });
 
+export const insertAdvertisementSchema = createInsertSchema(advertisements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  clickCount: true,
+  impressions: true,
+});
+
+export const insertClassifiedAdSchema = createInsertSchema(classifiedAds).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  viewCount: true,
+  approvedBy: true,
+  approvedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -156,6 +218,12 @@ export type Comment = typeof comments.$inferSelect;
 
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type Media = typeof media.$inferSelect;
+
+export type InsertAdvertisement = z.infer<typeof insertAdvertisementSchema>;
+export type Advertisement = typeof advertisements.$inferSelect;
+
+export type InsertClassifiedAd = z.infer<typeof insertClassifiedAdSchema>;
+export type ClassifiedAd = typeof classifiedAds.$inferSelect;
 
 // Extended types for API responses
 export type NewsWithDetails = News & {

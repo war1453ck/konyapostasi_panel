@@ -137,6 +137,24 @@ This is a full-stack news content management system built with React, Express, a
 - City and editor selection
 - Improved form organization with multiple sections
 
+✓ **Professional Advertisement Module** (June 25, 2025)
+- Complete advertisement management system
+- Multiple ad positions (header, sidebar, footer, content)
+- Various ad sizes (banner, rectangle, square, skyscraper)
+- Performance metrics (CTR, impressions, clicks)
+- Active/inactive status and priority ordering
+- Start/end date scheduling
+
+✓ **Classified Ads System** (June 25, 2025)
+- Comprehensive category system (vehicles, real-estate, electronics, etc.)
+- Advanced filtering and search capabilities
+- Premium and urgent ad options
+- Approval workflow (pending/approved/rejected)
+- Image gallery support
+- Contact information management
+- Price and location fields
+- View count tracking
+
 ## Changelog
 
 ```

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertCategorySchema, insertNewsSchema, insertCommentSchema, insertMediaSchema } from "@shared/schema";
+import { insertUserSchema, insertCategorySchema, insertNewsSchema, insertCommentSchema, insertMediaSchema, insertAdvertisementSchema, insertClassifiedAdSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -326,5 +326,197 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  // Advertisement routes
+  app.get("/api/advertisements", async (req, res) => {
+    try {
+      const { isActive, position } = req.query;
+      
+      const filters: { isActive?: boolean; position?: string } = {};
+      
+      if (isActive !== undefined) {
+        filters.isActive = isActive === 'true';
+      }
+      
+      if (position && typeof position === 'string') {
+        filters.position = position;
+      }
+
+      const advertisements = await storage.getAllAdvertisements(filters);
+      res.json(advertisements);
+    } catch (error) {
+      console.error('Error fetching advertisements:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/advertisements", async (req, res) => {
+    try {
+      const validatedData = insertAdvertisementSchema.parse(req.body);
+      const advertisement = await storage.createAdvertisement(validatedData);
+      res.status(201).json(advertisement);
+    } catch (error) {
+      console.error('Error creating advertisement:', error);
+      res.status(400).json({ error: 'Invalid advertisement data' });
+    }
+  });
+
+  app.patch("/api/advertisements/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid advertisement ID' });
+      }
+
+      const validatedData = insertAdvertisementSchema.partial().parse(req.body);
+      const advertisement = await storage.updateAdvertisement(id, validatedData);
+      
+      if (!advertisement) {
+        return res.status(404).json({ error: 'Advertisement not found' });
+      }
+
+      res.json(advertisement);
+    } catch (error) {
+      console.error('Error updating advertisement:', error);
+      res.status(400).json({ error: 'Invalid advertisement data' });
+    }
+  });
+
+  app.delete("/api/advertisements/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid advertisement ID' });
+      }
+
+      const deleted = await storage.deleteAdvertisement(id);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Advertisement not found' });
+      }
+
+      res.json({ message: 'Reklam silindi' });
+    } catch (error) {
+      console.error('Error deleting advertisement:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Classified Ads routes
+  app.get("/api/classified-ads", async (req, res) => {
+    try {
+      const { status, category, isPremium } = req.query;
+      
+      const filters: { status?: string; category?: string; isPremium?: boolean } = {};
+      
+      if (status && typeof status === 'string') {
+        filters.status = status;
+      }
+      
+      if (category && typeof category === 'string') {
+        filters.category = category;
+      }
+      
+      if (isPremium !== undefined) {
+        filters.isPremium = isPremium === 'true';
+      }
+
+      const classifiedAds = await storage.getAllClassifiedAds(filters);
+      res.json(classifiedAds);
+    } catch (error) {
+      console.error('Error fetching classified ads:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/classified-ads", async (req, res) => {
+    try {
+      const validatedData = insertClassifiedAdSchema.parse(req.body);
+      const classifiedAd = await storage.createClassifiedAd(validatedData);
+      res.status(201).json(classifiedAd);
+    } catch (error) {
+      console.error('Error creating classified ad:', error);
+      res.status(400).json({ error: 'Invalid classified ad data' });
+    }
+  });
+
+  app.patch("/api/classified-ads/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid classified ad ID' });
+      }
+
+      const validatedData = insertClassifiedAdSchema.partial().parse(req.body);
+      const classifiedAd = await storage.updateClassifiedAd(id, validatedData);
+      
+      if (!classifiedAd) {
+        return res.status(404).json({ error: 'Classified ad not found' });
+      }
+
+      res.json(classifiedAd);
+    } catch (error) {
+      console.error('Error updating classified ad:', error);
+      res.status(400).json({ error: 'Invalid classified ad data' });
+    }
+  });
+
+  app.delete("/api/classified-ads/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid classified ad ID' });
+      }
+
+      const deleted = await storage.deleteClassifiedAd(id);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Classified ad not found' });
+      }
+
+      res.json({ message: 'Seri ilan silindi' });
+    } catch (error) {
+      console.error('Error deleting classified ad:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/classified-ads/:id/approve", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid classified ad ID' });
+      }
+
+      const approverId = 1; // Admin user ID
+      
+      const classifiedAd = await storage.approveClassifiedAd(id, approverId);
+      if (!classifiedAd) {
+        return res.status(404).json({ error: 'Classified ad not found' });
+      }
+
+      res.json({ message: 'Seri ilan onaylandı', classifiedAd });
+    } catch (error) {
+      console.error('Error approving classified ad:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/classified-ads/:id/reject", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid classified ad ID' });
+      }
+
+      const classifiedAd = await storage.rejectClassifiedAd(id);
+      if (!classifiedAd) {
+        return res.status(404).json({ error: 'Classified ad not found' });
+      }
+
+      res.json({ message: 'Seri ilan reddedildi', classifiedAd });
+    } catch (error) {
+      console.error('Error rejecting classified ad:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   return httpServer;
 }

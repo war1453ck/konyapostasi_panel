@@ -119,14 +119,22 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.categories = new Map();
+    this.cities = new Map();
     this.news = new Map();
+    this.articles = new Map();
     this.comments = new Map();
     this.media = new Map();
+    this.advertisements = new Map();
+    this.classifiedAds = new Map();
     this.currentUserId = 1;
     this.currentCategoryId = 1;
+    this.currentCityId = 1;
     this.currentNewsId = 1;
+    this.currentArticleId = 1;
     this.currentCommentId = 1;
     this.currentMediaId = 1;
+    this.currentAdvertisementId = 1;
+    this.currentClassifiedAdId = 1;
 
     // Initialize with some default data
     this.initializeDefaultData();
@@ -729,18 +737,244 @@ export class MemStorage implements IStorage {
     activeWriters: number;
     pendingComments: number;
     todayViews: number;
+    totalAds: number;
+    activeAds: number;
+    pendingClassifieds: number;
   }> {
     const totalNews = this.news.size;
     const activeWriters = Array.from(this.users.values()).filter(u => u.isActive && u.role !== 'admin').length;
     const pendingComments = Array.from(this.comments.values()).filter(c => c.status === 'pending').length;
     const todayViews = Array.from(this.news.values()).reduce((sum, n) => sum + n.viewCount, 0);
+    const totalAds = this.advertisements.size;
+    const activeAds = Array.from(this.advertisements.values()).filter(ad => ad.isActive).length;
+    const pendingClassifieds = Array.from(this.classifiedAds.values()).filter(ad => ad.status === 'pending').length;
 
     return {
       totalNews,
       activeWriters,
       pendingComments,
-      todayViews
+      todayViews,
+      totalAds,
+      activeAds,
+      pendingClassifieds
     };
+  }
+
+  // Advertisement methods
+  async getAdvertisement(id: number): Promise<AdvertisementWithCreator | undefined> {
+    const ad = this.advertisements.get(id);
+    if (!ad) return undefined;
+
+    const creator = this.users.get(ad.createdBy);
+    if (!creator) return undefined;
+
+    return {
+      ...ad,
+      creator: {
+        id: creator.id,
+        firstName: creator.firstName,
+        lastName: creator.lastName,
+        username: creator.username,
+      },
+    };
+  }
+
+  async createAdvertisement(insertAd: InsertAdvertisement): Promise<Advertisement> {
+    const ad: Advertisement = {
+      id: ++this.currentAdvertisementId,
+      ...insertAd,
+      clickCount: 0,
+      impressions: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.advertisements.set(ad.id, ad);
+    return ad;
+  }
+
+  async updateAdvertisement(id: number, adUpdate: Partial<InsertAdvertisement>): Promise<Advertisement | undefined> {
+    const ad = this.advertisements.get(id);
+    if (!ad) return undefined;
+
+    const updatedAd = {
+      ...ad,
+      ...adUpdate,
+      updatedAt: new Date(),
+    };
+
+    this.advertisements.set(id, updatedAd);
+    return updatedAd;
+  }
+
+  async getAllAdvertisements(filters?: { isActive?: boolean; position?: string }): Promise<AdvertisementWithCreator[]> {
+    let ads = Array.from(this.advertisements.values());
+
+    if (filters?.isActive !== undefined) {
+      ads = ads.filter(ad => ad.isActive === filters.isActive);
+    }
+    if (filters?.position) {
+      ads = ads.filter(ad => ad.position === filters.position);
+    }
+
+    const adsWithCreators: AdvertisementWithCreator[] = [];
+    for (const ad of ads) {
+      const creator = this.users.get(ad.createdBy);
+      if (creator) {
+        adsWithCreators.push({
+          ...ad,
+          creator: {
+            id: creator.id,
+            firstName: creator.firstName,
+            lastName: creator.lastName,
+            username: creator.username,
+          },
+        });
+      }
+    }
+
+    return adsWithCreators.sort((a, b) => b.priority - a.priority);
+  }
+
+  async deleteAdvertisement(id: number): Promise<boolean> {
+    return this.advertisements.delete(id);
+  }
+
+  async incrementAdClicks(id: number): Promise<void> {
+    const ad = this.advertisements.get(id);
+    if (ad) {
+      ad.clickCount++;
+      this.advertisements.set(id, ad);
+    }
+  }
+
+  async incrementAdImpressions(id: number): Promise<void> {
+    const ad = this.advertisements.get(id);
+    if (ad) {
+      ad.impressions++;
+      this.advertisements.set(id, ad);
+    }
+  }
+
+  // Classified Ads methods
+  async getClassifiedAd(id: number): Promise<ClassifiedAdWithApprover | undefined> {
+    const ad = this.classifiedAds.get(id);
+    if (!ad) return undefined;
+
+    const approver = ad.approvedBy ? this.users.get(ad.approvedBy) : undefined;
+
+    return {
+      ...ad,
+      approver: approver ? {
+        id: approver.id,
+        firstName: approver.firstName,
+        lastName: approver.lastName,
+        username: approver.username,
+      } : undefined,
+    };
+  }
+
+  async createClassifiedAd(insertAd: InsertClassifiedAd): Promise<ClassifiedAd> {
+    const ad: ClassifiedAd = {
+      id: ++this.currentClassifiedAdId,
+      ...insertAd,
+      viewCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.classifiedAds.set(ad.id, ad);
+    return ad;
+  }
+
+  async updateClassifiedAd(id: number, adUpdate: Partial<InsertClassifiedAd>): Promise<ClassifiedAd | undefined> {
+    const ad = this.classifiedAds.get(id);
+    if (!ad) return undefined;
+
+    const updatedAd = {
+      ...ad,
+      ...adUpdate,
+      updatedAt: new Date(),
+    };
+
+    this.classifiedAds.set(id, updatedAd);
+    return updatedAd;
+  }
+
+  async getAllClassifiedAds(filters?: { status?: string; category?: string; isPremium?: boolean }): Promise<ClassifiedAdWithApprover[]> {
+    let ads = Array.from(this.classifiedAds.values());
+
+    if (filters?.status) {
+      ads = ads.filter(ad => ad.status === filters.status);
+    }
+    if (filters?.category) {
+      ads = ads.filter(ad => ad.category === filters.category);
+    }
+    if (filters?.isPremium !== undefined) {
+      ads = ads.filter(ad => ad.isPremium === filters.isPremium);
+    }
+
+    const adsWithApprovers: ClassifiedAdWithApprover[] = [];
+    for (const ad of ads) {
+      const approver = ad.approvedBy ? this.users.get(ad.approvedBy) : undefined;
+      adsWithApprovers.push({
+        ...ad,
+        approver: approver ? {
+          id: approver.id,
+          firstName: approver.firstName,
+          lastName: approver.lastName,
+          username: approver.username,
+        } : undefined,
+      });
+    }
+
+    return adsWithApprovers.sort((a, b) => {
+      if (a.isPremium !== b.isPremium) return b.isPremium ? 1 : -1;
+      if (a.isUrgent !== b.isUrgent) return b.isUrgent ? 1 : -1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  async deleteClassifiedAd(id: number): Promise<boolean> {
+    return this.classifiedAds.delete(id);
+  }
+
+  async approveClassifiedAd(id: number, approverId: number): Promise<ClassifiedAd | undefined> {
+    const ad = this.classifiedAds.get(id);
+    if (!ad) return undefined;
+
+    const updatedAd = {
+      ...ad,
+      status: 'approved' as const,
+      approvedBy: approverId,
+      approvedAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.classifiedAds.set(id, updatedAd);
+    return updatedAd;
+  }
+
+  async rejectClassifiedAd(id: number): Promise<ClassifiedAd | undefined> {
+    const ad = this.classifiedAds.get(id);
+    if (!ad) return undefined;
+
+    const updatedAd = {
+      ...ad,
+      status: 'rejected' as const,
+      updatedAt: new Date(),
+    };
+
+    this.classifiedAds.set(id, updatedAd);
+    return updatedAd;
+  }
+
+  async incrementClassifiedAdViews(id: number): Promise<void> {
+    const ad = this.classifiedAds.get(id);
+    if (ad) {
+      ad.viewCount++;
+      this.classifiedAds.set(id, ad);
+    }
   }
 }
 

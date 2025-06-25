@@ -17,6 +17,8 @@ import SEO from "@/pages/seo";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
+import Advertisements from "@/pages/advertisements";
+import ClassifiedAds from "@/pages/classified-ads";
 
 function Router() {
   return (
@@ -27,6 +29,8 @@ function Router() {
         <Route path="/news/new" component={NewsForm} />
         <Route path="/articles" component={Articles} />
         <Route path="/categories" component={Categories} />
+        <Route path="/advertisements" component={Advertisements} />
+        <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/users" component={Users} />
         <Route path="/media" component={Media} />
         <Route path="/comments" component={Comments} />
