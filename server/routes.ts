@@ -212,7 +212,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/news", async (req, res) => {
     try {
-      const newsData = insertNewsSchema.parse(req.body);
+      // Add default values for required fields if missing
+      const data = {
+        ...req.body,
+        slug: req.body.slug || req.body.title?.toLowerCase()
+          .replace(/ç/g, 'c')
+          .replace(/ğ/g, 'g')
+          .replace(/ı/g, 'i')
+          .replace(/ö/g, 'o')
+          .replace(/ş/g, 's')
+          .replace(/ü/g, 'u')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '') || 'haber',
+        authorId: req.body.authorId || 1,
+      };
+      
+      const newsData = insertNewsSchema.parse(data);
       const news = await storage.createNews(newsData);
       res.status(201).json(news);
     } catch (error) {
@@ -227,6 +244,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const newsData = insertNewsSchema.partial().parse(req.body);
+      const news = await storage.updateNews(id, newsData);
+      if (!news) {
+        return res.status(404).json({ message: "Haber bulunamadı" });
+      }
+      res.json(news);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Geçersiz veri", errors: error.errors });
+      }
+      res.status(500).json({ message: "Haber güncellenirken hata oluştu" });
+    }
+  });
+
+  app.patch("/api/news/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Add default values for required fields if missing
+      const data = {
+        ...req.body,
+        slug: req.body.slug || req.body.title?.toLowerCase()
+          .replace(/ç/g, 'c')
+          .replace(/ğ/g, 'g')
+          .replace(/ı/g, 'i')
+          .replace(/ö/g, 'o')
+          .replace(/ş/g, 's')
+          .replace(/ü/g, 'u')
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '') || undefined,
+        authorId: req.body.authorId || 1,
+      };
+      
+      const newsData = insertNewsSchema.partial().parse(data);
       const news = await storage.updateNews(id, newsData);
       if (!news) {
         return res.status(404).json({ message: "Haber bulunamadı" });

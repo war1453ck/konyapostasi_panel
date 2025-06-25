@@ -181,6 +181,8 @@ export const insertNewsSchema = createInsertSchema(news).omit({
   updatedAt: true,
   viewCount: true,
 }).extend({
+  slug: z.string().optional(),
+  authorId: z.number().optional(),
   sourceId: z.number().optional().nullable(),
 });
 
