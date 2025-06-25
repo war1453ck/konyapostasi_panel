@@ -28,6 +28,7 @@ export const cities = pgTable("cities", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  code: text("code").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
