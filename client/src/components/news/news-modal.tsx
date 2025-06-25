@@ -233,9 +233,14 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
   };
 
   const publish = () => {
+    console.log('Yayınla butonuna tıklandı');
     form.setValue('status', 'published');
-    form.setValue('publishedAt', new Date().toISOString());
-    form.handleSubmit(onSubmit)();
+    const formData = form.getValues();
+    console.log('Form verileri:', formData);
+    form.handleSubmit((data) => {
+      console.log('Form submit çağrıldı:', data);
+      onSubmit(data);
+    })();
   };
 
   return (

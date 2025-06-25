@@ -176,6 +176,8 @@ export const insertNewsSchema = createInsertSchema(news).omit({
   createdAt: true,
   updatedAt: true,
   viewCount: true,
+}).extend({
+  sourceId: z.number().optional().nullable(),
 });
 
 export const insertArticleSchema = createInsertSchema(articles).omit({
