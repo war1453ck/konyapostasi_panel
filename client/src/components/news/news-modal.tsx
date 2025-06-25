@@ -354,12 +354,38 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
                   <FormField
                     control={form.control}
+                    name="sourceId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Haber Kaynağı</FormLabel>
+                        <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Kaynak seçin..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Kaynak Seçilmedi</SelectItem>
+                            {sources.map((source: any) => (
+                              <SelectItem key={source.id} value={source.id.toString()}>
+                                {source.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="source"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Kaynak</FormLabel>
+                        <FormLabel>Kaynak (Metin)</FormLabel>
                         <FormControl>
-                          <Input placeholder="Haber kaynağı..." {...field} />
+                          <Input placeholder="Ek kaynak bilgisi..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
