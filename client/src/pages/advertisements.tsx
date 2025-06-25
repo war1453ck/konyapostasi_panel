@@ -200,7 +200,7 @@ export default function Advertisements() {
                 <SelectValue placeholder="Durum" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tümü</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
                 <SelectItem value="true">Aktif</SelectItem>
                 <SelectItem value="false">Pasif</SelectItem>
               </SelectContent>
@@ -210,7 +210,7 @@ export default function Advertisements() {
                 <SelectValue placeholder="Pozisyon" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tümü</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
                 <SelectItem value="header">Header</SelectItem>
                 <SelectItem value="sidebar">Sidebar</SelectItem>
                 <SelectItem value="footer">Footer</SelectItem>

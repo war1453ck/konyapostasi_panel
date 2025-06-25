@@ -1357,12 +1357,266 @@ export class DatabaseStorage implements IStorage {
       .from(news)
       .where(sql`DATE(${news.publishedAt}) = DATE(${today.toISOString()})`);
 
+    const [totalAdsResult] = await db.select({ count: count() }).from(advertisements);
+    const [activeAdsResult] = await db.select({ count: count() }).from(advertisements).where(eq(advertisements.isActive, true));
+    const [pendingClassifiedsResult] = await db.select({ count: count() }).from(classifiedAds).where(eq(classifiedAds.status, 'pending'));
+
     return {
       totalNews: totalNewsResult.count,
       activeWriters: activeWritersResult.count,
       pendingComments: pendingCommentsResult.count,
-      todayViews: todayViewsResult.total || 0
+      todayViews: todayViewsResult.total || 0,
+      totalAds: totalAdsResult.count,
+      activeAds: activeAdsResult.count,
+      pendingClassifieds: pendingClassifiedsResult.count,
     };
+  }
+
+  // Advertisement methods
+  async getAdvertisement(id: number): Promise<AdvertisementWithCreator | undefined> {
+    const [ad] = await db.select().from(advertisements).where(eq(advertisements.id, id));
+    if (!ad) return undefined;
+
+    const [creator] = await db.select().from(users).where(eq(users.id, ad.createdBy));
+    if (!creator) return undefined;
+
+    return {
+      ...ad,
+      creator: {
+        id: creator.id,
+        firstName: creator.firstName,
+        lastName: creator.lastName,
+        username: creator.username,
+      },
+    };
+  }
+
+  async createAdvertisement(insertAd: InsertAdvertisement): Promise<Advertisement> {
+    const [ad] = await db
+      .insert(advertisements)
+      .values({
+        ...insertAd,
+        description: insertAd.description || null,
+        imageUrl: insertAd.imageUrl || null,
+        linkUrl: insertAd.linkUrl || null,
+        isActive: insertAd.isActive ?? true,
+        startDate: insertAd.startDate || null,
+        endDate: insertAd.endDate || null,
+        priority: insertAd.priority || 0,
+      })
+      .returning();
+    return ad;
+  }
+
+  async updateAdvertisement(id: number, adUpdate: Partial<InsertAdvertisement>): Promise<Advertisement | undefined> {
+    const [ad] = await db
+      .update(advertisements)
+      .set({
+        ...adUpdate,
+        updatedAt: new Date(),
+      })
+      .where(eq(advertisements.id, id))
+      .returning();
+    return ad || undefined;
+  }
+
+  async getAllAdvertisements(filters?: { isActive?: boolean; position?: string }): Promise<AdvertisementWithCreator[]> {
+    let query = db.select().from(advertisements);
+    
+    const conditions = [];
+    if (filters?.isActive !== undefined) {
+      conditions.push(eq(advertisements.isActive, filters.isActive));
+    }
+    if (filters?.position) {
+      conditions.push(eq(advertisements.position, filters.position));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    const ads = await query.orderBy(desc(advertisements.priority), desc(advertisements.createdAt));
+    
+    const adsWithCreators: AdvertisementWithCreator[] = [];
+    for (const ad of ads) {
+      const [creator] = await db.select().from(users).where(eq(users.id, ad.createdBy));
+      if (creator) {
+        adsWithCreators.push({
+          ...ad,
+          creator: {
+            id: creator.id,
+            firstName: creator.firstName,
+            lastName: creator.lastName,
+            username: creator.username,
+          },
+        });
+      }
+    }
+
+    return adsWithCreators;
+  }
+
+  async deleteAdvertisement(id: number): Promise<boolean> {
+    const result = await db.delete(advertisements).where(eq(advertisements.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async incrementAdClicks(id: number): Promise<void> {
+    await db
+      .update(advertisements)
+      .set({
+        clickCount: sql`${advertisements.clickCount} + 1`,
+      })
+      .where(eq(advertisements.id, id));
+  }
+
+  async incrementAdImpressions(id: number): Promise<void> {
+    await db
+      .update(advertisements)
+      .set({
+        impressions: sql`${advertisements.impressions} + 1`,
+      })
+      .where(eq(advertisements.id, id));
+  }
+
+  // Classified Ads methods
+  async getClassifiedAd(id: number): Promise<ClassifiedAdWithApprover | undefined> {
+    const [ad] = await db.select().from(classifiedAds).where(eq(classifiedAds.id, id));
+    if (!ad) return undefined;
+
+    let approver = undefined;
+    if (ad.approvedBy) {
+      const [approverUser] = await db.select().from(users).where(eq(users.id, ad.approvedBy));
+      if (approverUser) {
+        approver = {
+          id: approverUser.id,
+          firstName: approverUser.firstName,
+          lastName: approverUser.lastName,
+          username: approverUser.username,
+        };
+      }
+    }
+
+    return {
+      ...ad,
+      approver,
+    };
+  }
+
+  async createClassifiedAd(insertAd: InsertClassifiedAd): Promise<ClassifiedAd> {
+    const [ad] = await db
+      .insert(classifiedAds)
+      .values({
+        ...insertAd,
+        subcategory: insertAd.subcategory || null,
+        price: insertAd.price || null,
+        location: insertAd.location || null,
+        contactPhone: insertAd.contactPhone || null,
+        contactEmail: insertAd.contactEmail || null,
+        images: insertAd.images || null,
+        status: insertAd.status || "pending",
+        isPremium: insertAd.isPremium || false,
+        isUrgent: insertAd.isUrgent || false,
+        expiresAt: insertAd.expiresAt || null,
+      })
+      .returning();
+    return ad;
+  }
+
+  async updateClassifiedAd(id: number, adUpdate: Partial<InsertClassifiedAd>): Promise<ClassifiedAd | undefined> {
+    const [ad] = await db
+      .update(classifiedAds)
+      .set({
+        ...adUpdate,
+        updatedAt: new Date(),
+      })
+      .where(eq(classifiedAds.id, id))
+      .returning();
+    return ad || undefined;
+  }
+
+  async getAllClassifiedAds(filters?: { status?: string; category?: string; isPremium?: boolean }): Promise<ClassifiedAdWithApprover[]> {
+    let query = db.select().from(classifiedAds);
+    
+    const conditions = [];
+    if (filters?.status) {
+      conditions.push(eq(classifiedAds.status, filters.status));
+    }
+    if (filters?.category) {
+      conditions.push(eq(classifiedAds.category, filters.category));
+    }
+    if (filters?.isPremium !== undefined) {
+      conditions.push(eq(classifiedAds.isPremium, filters.isPremium));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    const ads = await query.orderBy(desc(classifiedAds.isPremium), desc(classifiedAds.isUrgent), desc(classifiedAds.createdAt));
+    
+    const adsWithApprovers: ClassifiedAdWithApprover[] = [];
+    for (const ad of ads) {
+      let approver = undefined;
+      if (ad.approvedBy) {
+        const [approverUser] = await db.select().from(users).where(eq(users.id, ad.approvedBy));
+        if (approverUser) {
+          approver = {
+            id: approverUser.id,
+            firstName: approverUser.firstName,
+            lastName: approverUser.lastName,
+            username: approverUser.username,
+          };
+        }
+      }
+      
+      adsWithApprovers.push({
+        ...ad,
+        approver,
+      });
+    }
+
+    return adsWithApprovers;
+  }
+
+  async deleteClassifiedAd(id: number): Promise<boolean> {
+    const result = await db.delete(classifiedAds).where(eq(classifiedAds.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async approveClassifiedAd(id: number, approverId: number): Promise<ClassifiedAd | undefined> {
+    const [ad] = await db
+      .update(classifiedAds)
+      .set({
+        status: 'approved',
+        approvedBy: approverId,
+        approvedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(classifiedAds.id, id))
+      .returning();
+    return ad || undefined;
+  }
+
+  async rejectClassifiedAd(id: number): Promise<ClassifiedAd | undefined> {
+    const [ad] = await db
+      .update(classifiedAds)
+      .set({
+        status: 'rejected',
+        updatedAt: new Date(),
+      })
+      .where(eq(classifiedAds.id, id))
+      .returning();
+    return ad || undefined;
+  }
+
+  async incrementClassifiedAdViews(id: number): Promise<void> {
+    await db
+      .update(classifiedAds)
+      .set({
+        viewCount: sql`${classifiedAds.viewCount} + 1`,
+      })
+      .where(eq(classifiedAds.id, id));
   }
 }
 
