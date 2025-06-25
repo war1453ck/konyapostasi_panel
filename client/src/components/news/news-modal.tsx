@@ -172,10 +172,11 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       });
       onClose();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Haber kaydetme hatası:', error);
       toast({
         title: 'Hata',
-        description: 'Haber kaydedilirken bir hata oluştu',
+        description: error?.message || 'Haber kaydedilirken bir hata oluştu',
         variant: 'destructive',
       });
     }
@@ -216,6 +217,8 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
   };
 
   const onSubmit = (data: NewsFormData) => {
+    console.log('Form data gönderiliyor:', data);
+    console.log('Form validation errors:', form.formState.errors);
     createNewsMutation.mutate(data);
   };
 
