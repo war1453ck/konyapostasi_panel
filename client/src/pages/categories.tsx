@@ -46,6 +46,7 @@ type CategoryFormData = {
 export default function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithChildren | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -162,6 +163,12 @@ export default function Categories() {
     createCategoryMutation.mutate(data);
   };
 
+  // Filter categories based on search query
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -190,7 +197,15 @@ export default function Categories() {
       {/* Categories Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Kategori Listesi</CardTitle>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+            <CardTitle>Kategori Listesi</CardTitle>
+            <Input
+              placeholder="Kategori ara..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-64 min-h-[44px]"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {/* Desktop Table View */}
@@ -206,17 +221,17 @@ export default function Categories() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {categories.length === 0 ? (
+                {filteredCategories.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
                       <div className="text-muted-foreground">
                         <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        Henüz kategori bulunmuyor
+                        {searchQuery ? 'Arama kriterine uygun kategori bulunamadı' : 'Henüz kategori bulunmuyor'}
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  categories.map((category) => (
+                  filteredCategories.map((category) => (
                     <TableRow key={category.id}>
                       <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell className="text-muted-foreground">{category.slug}</TableCell>
@@ -258,15 +273,15 @@ export default function Categories() {
 
           {/* Mobile Card View */}
           <div className="block lg:hidden space-y-3">
-            {categories.length === 0 ? (
+            {filteredCategories.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-muted-foreground">
                   <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  Henüz kategori bulunmuyor
+                  {searchQuery ? 'Arama kriterine uygun kategori bulunamadı' : 'Henüz kategori bulunmuyor'}
                 </div>
               </div>
             ) : (
-              categories.map((category) => (
+              filteredCategories.map((category) => (
                 <Card key={category.id} className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
