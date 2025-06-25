@@ -21,6 +21,7 @@ import NotFound from "@/pages/not-found";
 import Advertisements from "@/pages/advertisements";
 import ClassifiedAds from "@/pages/classified-ads";
 import Newspaper from "@/pages/newspaper";
+import DigitalMagazine from "@/pages/digital-magazine";
 import MenuSettings from "@/pages/menu-settings";
 
 function Router() {
@@ -36,7 +37,7 @@ function Router() {
         <Route path="/media" component={Media} />
         <Route path="/comments" component={Comments} />
         <Route path="/newspaper" component={Newspaper} />
-        <Route path="/digital-magazine" component={lazy(() => import('./pages/digital-magazine').then(m => ({ default: m.default })))} />
+        <Route path="/digital-magazine" component={DigitalMagazine} />
         <Route path="/advertisements" component={Advertisements} />
         <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/seo" component={SEO} />

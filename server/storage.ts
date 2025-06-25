@@ -2071,7 +2071,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(newspaperPages)
       .where(eq(newspaperPages.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Digital Magazines methods
@@ -2101,33 +2101,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
-    let query = db.select().from(digitalMagazines);
-    
-    if (filters) {
-      const conditions: any[] = [];
-      if (filters.isPublished !== undefined) {
-        conditions.push(eq(digitalMagazines.isPublished, filters.isPublished));
-      }
-      if (filters.category) {
-        conditions.push(eq(digitalMagazines.category, filters.category));
-      }
-      if (filters.isFeatured !== undefined) {
-        conditions.push(eq(digitalMagazines.isFeatured, filters.isFeatured));
+    try {
+      let query = db.select().from(digitalMagazines);
+      
+      if (filters) {
+        const conditions: any[] = [];
+        if (filters.isPublished !== undefined) {
+          conditions.push(eq(digitalMagazines.isPublished, filters.isPublished));
+        }
+        if (filters.category) {
+          conditions.push(eq(digitalMagazines.category, filters.category));
+        }
+        if (filters.isFeatured !== undefined) {
+          conditions.push(eq(digitalMagazines.isFeatured, filters.isFeatured));
+        }
+        
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
+        }
       }
       
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
+      const result = await query.orderBy(desc(digitalMagazines.publishDate));
+      return result;
+    } catch (error) {
+      console.error('Error fetching digital magazines:', error);
+      return [];
     }
-    
-    return await query.orderBy(desc(digitalMagazines.publishDate));
   }
 
   async deleteDigitalMagazine(id: number): Promise<boolean> {
     const result = await db
       .delete(digitalMagazines)
       .where(eq(digitalMagazines.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async incrementDownloadCount(id: number): Promise<void> {
