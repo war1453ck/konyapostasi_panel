@@ -105,6 +105,11 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
         status: news.status,
         categoryId: news.categoryId,
         authorId: news.authorId,
+        editorId: news.editorId || undefined,
+        cityId: news.cityId || undefined,
+        source: news.source || '',
+        videoUrl: news.videoUrl || '',
+        videoThumbnail: news.videoThumbnail || '',
         featuredImage: news.featuredImage || '',
         metaTitle: news.metaTitle || '',
         metaDescription: news.metaDescription || '',
@@ -120,6 +125,11 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
         status: 'draft',
         categoryId: 0,
         authorId: 1,
+        editorId: undefined,
+        cityId: undefined,
+        source: '',
+        videoUrl: '',
+        videoThumbnail: '',
         featuredImage: '',
         metaTitle: '',
         metaDescription: '',
@@ -288,6 +298,68 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                             ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cityId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Şehir</FormLabel>
+                        <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Şehir seçin..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Şehir Seçilmedi</SelectItem>
+                            {cities.map((city: any) => (
+                              <SelectItem key={city.id} value={city.id.toString()}>
+                                {city.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="editorId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Editör</FormLabel>
+                        <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Editör seçin..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Editör Atanmadı</SelectItem>
+                            <SelectItem value="1">Admin User</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="source"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kaynak</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Haber kaynağı..." {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
