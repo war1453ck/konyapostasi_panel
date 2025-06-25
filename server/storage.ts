@@ -306,6 +306,8 @@ export class MemStorage implements IStorage {
       isUrgent: true,
       viewCount: 22,
       expiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+      approvedBy: null,
+      approvedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -583,7 +585,12 @@ export class MemStorage implements IStorage {
       keywords: insertNews.keywords ?? null,
       featuredImage: insertNews.featuredImage ?? null,
       publishedAt: insertNews.publishedAt ?? null,
-      scheduledAt: insertNews.scheduledAt ?? null
+      scheduledAt: insertNews.scheduledAt ?? null,
+      source: insertNews.source ?? null,
+      videoUrl: insertNews.videoUrl ?? null,
+      videoThumbnail: insertNews.videoThumbnail ?? null,
+      editorId: insertNews.editorId ?? null,
+      cityId: insertNews.cityId ?? null
     };
     this.news.set(id, newsItem);
     return newsItem;
@@ -787,6 +794,12 @@ export class MemStorage implements IStorage {
     const ad: Advertisement = {
       id: ++this.currentAdvertisementId,
       ...insertAd,
+      description: insertAd.description ?? null,
+      imageUrl: insertAd.imageUrl ?? null,
+      linkUrl: insertAd.linkUrl ?? null,
+      startDate: insertAd.startDate ?? null,
+      endDate: insertAd.endDate ?? null,
+      priority: insertAd.priority ?? 0,
       isActive: insertAd.isActive ?? true,
       clickCount: 0,
       impressions: 0,
@@ -883,6 +896,16 @@ export class MemStorage implements IStorage {
     const ad: ClassifiedAd = {
       id: ++this.currentClassifiedAdId,
       ...insertAd,
+      subcategory: insertAd.subcategory ?? null,
+      price: insertAd.price ?? null,
+      currency: insertAd.currency ?? "TRY",
+      location: insertAd.location ?? null,
+      contactPhone: insertAd.contactPhone ?? null,
+      contactEmail: insertAd.contactEmail ?? null,
+      images: insertAd.images ?? null,
+      expiresAt: insertAd.expiresAt ?? null,
+      isPremium: insertAd.isPremium ?? false,
+      isUrgent: insertAd.isUrgent ?? false,
       status: insertAd.status || "pending",
       viewCount: 0,
       approvedBy: null,
@@ -1104,6 +1127,43 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: number): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Cities
+  async getCity(id: number): Promise<City | undefined> {
+    const [city] = await db.select().from(cities).where(eq(cities.id, id));
+    return city || undefined;
+  }
+
+  async getCityBySlug(slug: string): Promise<City | undefined> {
+    const [city] = await db.select().from(cities).where(eq(cities.slug, slug));
+    return city || undefined;
+  }
+
+  async createCity(insertCity: InsertCity): Promise<City> {
+    const [city] = await db
+      .insert(cities)
+      .values(insertCity)
+      .returning();
+    return city;
+  }
+
+  async updateCity(id: number, cityUpdate: Partial<InsertCity>): Promise<City | undefined> {
+    const [city] = await db
+      .update(cities)
+      .set(cityUpdate)
+      .where(eq(cities.id, id))
+      .returning();
+    return city || undefined;
+  }
+
+  async getAllCities(): Promise<City[]> {
+    return db.select().from(cities).orderBy(cities.name);
+  }
+
+  async deleteCity(id: number): Promise<boolean> {
+    const result = await db.delete(cities).where(eq(cities.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -1340,6 +1400,9 @@ export class DatabaseStorage implements IStorage {
     activeWriters: number;
     pendingComments: number;
     todayViews: number;
+    totalAds: number;
+    activeAds: number;
+    pendingClassifieds: number;
   }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -1421,21 +1484,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllAdvertisements(filters?: { isActive?: boolean; position?: string }): Promise<AdvertisementWithCreator[]> {
-    let query = db.select().from(advertisements);
-    
-    const conditions = [];
+    let whereConditions = [];
     if (filters?.isActive !== undefined) {
-      conditions.push(eq(advertisements.isActive, filters.isActive));
+      whereConditions.push(eq(advertisements.isActive, filters.isActive));
     }
     if (filters?.position) {
-      conditions.push(eq(advertisements.position, filters.position));
+      whereConditions.push(eq(advertisements.position, filters.position));
     }
     
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    const ads = await query.orderBy(desc(advertisements.priority), desc(advertisements.createdAt));
+    const ads = whereConditions.length > 0
+      ? await db.select().from(advertisements).where(and(...whereConditions)).orderBy(desc(advertisements.priority), desc(advertisements.createdAt))
+      : await db.select().from(advertisements).orderBy(desc(advertisements.priority), desc(advertisements.createdAt));
     
     const adsWithCreators: AdvertisementWithCreator[] = [];
     for (const ad of ads) {
@@ -1536,24 +1595,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllClassifiedAds(filters?: { status?: string; category?: string; isPremium?: boolean }): Promise<ClassifiedAdWithApprover[]> {
-    let query = db.select().from(classifiedAds);
-    
-    const conditions = [];
+    let whereConditions = [];
     if (filters?.status) {
-      conditions.push(eq(classifiedAds.status, filters.status));
+      whereConditions.push(eq(classifiedAds.status, filters.status));
     }
     if (filters?.category) {
-      conditions.push(eq(classifiedAds.category, filters.category));
+      whereConditions.push(eq(classifiedAds.category, filters.category));
     }
     if (filters?.isPremium !== undefined) {
-      conditions.push(eq(classifiedAds.isPremium, filters.isPremium));
+      whereConditions.push(eq(classifiedAds.isPremium, filters.isPremium));
     }
     
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-    
-    const ads = await query.orderBy(desc(classifiedAds.isPremium), desc(classifiedAds.isUrgent), desc(classifiedAds.createdAt));
+    const ads = whereConditions.length > 0
+      ? await db.select().from(classifiedAds).where(and(...whereConditions)).orderBy(desc(classifiedAds.isPremium), desc(classifiedAds.isUrgent), desc(classifiedAds.createdAt))
+      : await db.select().from(classifiedAds).orderBy(desc(classifiedAds.isPremium), desc(classifiedAds.isUrgent), desc(classifiedAds.createdAt));
     
     const adsWithApprovers: ClassifiedAdWithApprover[] = [];
     for (const ad of ads) {
