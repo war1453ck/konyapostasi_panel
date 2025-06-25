@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
 import * as LucideIcons from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,44 +17,70 @@ interface HeaderProps {
   onMenuClick: () => void;
 }
 
+// Notifications localStorage key
+const NOTIFICATIONS_STORAGE_KEY = 'header_notifications';
+
+// Initial notifications data
+const initialNotifications = [
+  {
+    id: 1,
+    title: "Yeni haber eklendi",
+    description: "YouTube Video Haber Testi başlıklı haber yayınlandı",
+    time: "2 dakika önce",
+    read: false,
+    type: "news"
+  },
+  {
+    id: 2,
+    title: "Kategori güncellendi",
+    description: "Teknoloji kategorisi başarıyla güncellendi",
+    time: "15 dakika önce",
+    read: false,
+    type: "category"
+  },
+  {
+    id: 3,
+    title: "Yeni yorum onayı",
+    description: "3 yorum onay bekliyor",
+    time: "1 saat önce",
+    read: true,
+    type: "comment"
+  },
+  {
+    id: 4,
+    title: "Dergi kategorisi eklendi",
+    description: "Test Bildirim kategorisi başarıyla oluşturuldu",
+    time: "5 dakika önce",
+    read: false,
+    type: "magazine"
+  }
+];
+
 export function Header({ onMenuClick }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Yeni haber eklendi",
-      description: "YouTube Video Haber Testi başlıklı haber yayınlandı",
-      time: "2 dakika önce",
-      read: false,
-      type: "news"
-    },
-    {
-      id: 2,
-      title: "Kategori güncellendi",
-      description: "Teknoloji kategorisi başarıyla güncellendi",
-      time: "15 dakika önce",
-      read: false,
-      type: "category"
-    },
-    {
-      id: 3,
-      title: "Yeni yorum onayı",
-      description: "3 yorum onay bekliyor",
-      time: "1 saat önce",
-      read: true,
-      type: "comment"
-    },
-    {
-      id: 4,
-      title: "Dergi kategorisi eklendi",
-      description: "Test Bildirim kategorisi başarıyla oluşturuldu",
-      time: "5 dakika önce",
-      read: false,
-      type: "magazine"
+  // Initialize notifications from localStorage or use initial data
+  const [notifications, setNotifications] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error('Error parsing stored notifications:', e);
+        }
+      }
     }
-  ]);
+    return initialNotifications;
+  });
+
+  // Save notifications to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
+    }
+  }, [notifications]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -69,13 +95,14 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   const markAsRead = (notificationId: number) => {
-    setNotifications(prev => 
-      prev.map(notification => 
+    setNotifications(prev => {
+      const updated = prev.map(notification => 
         notification.id === notificationId 
           ? { ...notification, read: true }
           : notification
-      )
-    );
+      );
+      return updated;
+    });
   };
 
   const handleNotificationClick = (notification: any) => {
@@ -202,11 +229,13 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </button>
                 {unreadCount > 0 && (
                   <button 
-                    className="text-sm text-muted-foreground hover:text-foreground py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
-                    onClick={() => {
-                      setNotifications(prev => 
-                        prev.map(notification => ({ ...notification, read: true }))
-                      );
+                    className="text-sm text-muted-foreground hover:text-foreground py-2 px-3 rounded-md hover:bg-muted/50 transition-colors whitespace-nowrap"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNotifications(prev => {
+                        const updated = prev.map(notification => ({ ...notification, read: true }));
+                        return updated;
+                      });
                     }}
                   >
                     Tümünü okundu işaretle
