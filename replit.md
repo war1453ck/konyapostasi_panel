@@ -192,4 +192,6 @@ Changelog:
 
 ```
 Preferred communication style: Simple, everyday language.
+Interface language: Turkish
+Mobile responsiveness: High priority - all components must work properly on mobile devices
 ```

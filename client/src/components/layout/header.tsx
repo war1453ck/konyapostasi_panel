@@ -115,9 +115,9 @@ export function Header({ onMenuClick }: HeaderProps) {
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel className="flex items-center justify-between">
-                <span>Bildirimler</span>
+            <DropdownMenuContent align="end" className="w-72 sm:w-80 max-w-[90vw]">
+              <DropdownMenuLabel className="flex items-center justify-between p-3">
+                <span className="font-medium">Bildirimler</span>
                 {unreadCount > 0 && (
                   <Badge variant="secondary" className="text-xs">
                     {unreadCount} okunmamış
@@ -125,39 +125,67 @@ export function Header({ onMenuClick }: HeaderProps) {
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-80 sm:max-h-96 overflow-y-auto">
                 {notifications.map((notification) => (
-                  <DropdownMenuItem 
+                  <div 
                     key={notification.id} 
-                    className={`flex flex-col items-start p-3 cursor-pointer ${!notification.read ? 'bg-muted/50' : ''}`}
+                    className={`p-3 hover:bg-muted/50 cursor-pointer border-b border-border/50 last:border-b-0 ${!notification.read ? 'bg-muted/30' : ''}`}
+                    onClick={() => {
+                      // Navigate based on notification type
+                      switch(notification.type) {
+                        case 'news':
+                          window.location.href = '/news';
+                          break;
+                        case 'category':
+                          window.location.href = '/categories';
+                          break;
+                        case 'comment':
+                          window.location.href = '/comments';
+                          break;
+                        case 'magazine':
+                          window.location.href = '/magazine-categories';
+                          break;
+                        default:
+                          break;
+                      }
+                    }}
                   >
-                    <div className="flex items-start justify-between w-full">
-                      <div className="flex items-start space-x-2 flex-1">
-                        <span className="text-lg">{getNotificationIcon(notification.type)}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{notification.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {notification.description}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                            <LucideIcons.Clock className="h-3 w-3 mr-1" />
-                            {notification.time}
-                          </p>
+                    <div className="flex items-start space-x-3">
+                      <span className="text-base sm:text-lg flex-shrink-0">{getNotificationIcon(notification.type)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <p className="text-sm font-medium text-foreground line-clamp-1">{notification.title}</p>
+                          {!notification.read && (
+                            <div className="h-2 w-2 bg-blue-600 rounded-full flex-shrink-0 ml-2 mt-1"></div>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-1 ml-2">
-                        {!notification.read && (
-                          <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
-                        )}
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {notification.description}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2 flex items-center">
+                          <LucideIcons.Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">{notification.time}</span>
+                        </p>
                       </div>
                     </div>
-                  </DropdownMenuItem>
+                  </div>
                 ))}
+                {notifications.length === 0 && (
+                  <div className="p-6 text-center">
+                    <LucideIcons.Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Henüz bildirim yok</p>
+                  </div>
+                )}
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="justify-center text-center text-sm text-muted-foreground">
-                Tüm bildirimleri görüntüle
-              </DropdownMenuItem>
+              <div className="p-2">
+                <button 
+                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground py-2 px-3 rounded-md hover:bg-muted/50 transition-colors"
+                  onClick={() => window.location.href = '/notifications'}
+                >
+                  Tüm bildirimleri görüntüle
+                </button>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
 
