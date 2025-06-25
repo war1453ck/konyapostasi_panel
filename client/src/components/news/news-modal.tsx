@@ -47,26 +47,22 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<FormData>({
-    resolver: zodResolver(insertNewsSchema.extend({
-      slug: insertNewsSchema.shape.slug.optional(),
-    })),
+    resolver: zodResolver(insertNewsSchema),
     defaultValues: {
       title: '',
-      slug: '',
-      summary: '',
       content: '',
       categoryId: undefined,
       status: 'draft',
-      featuredImage: '',
-      metaTitle: '',
-      metaDescription: '',
-      authorId: 1,
-      keywords: '',
-      cityId: undefined,
-      sourceId: undefined,
-      editorId: undefined,
-      videoUrl: '',
-      videoThumbnail: '',
+      summary: null,
+      featuredImage: null,
+      metaTitle: null,
+      metaDescription: null,
+      keywords: null,
+      cityId: null,
+      sourceId: null,
+      editorId: null,
+      videoUrl: null,
+      videoThumbnail: null,
     },
   });
 
@@ -141,8 +137,27 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
       });
       return;
     }
+
+    // Clean data before sending
+    const cleanData = {
+      title: data.title.trim(),
+      content: data.content.trim(),
+      categoryId: data.categoryId,
+      status: data.status || 'draft',
+      summary: data.summary?.trim() || null,
+      featuredImage: data.featuredImage || null,
+      metaTitle: data.metaTitle?.trim() || null,
+      metaDescription: data.metaDescription?.trim() || null,
+      keywords: data.keywords?.trim() || null,
+      cityId: data.cityId || null,
+      sourceId: data.sourceId || null,
+      editorId: data.editorId || null,
+      videoUrl: data.videoUrl?.trim() || null,
+      videoThumbnail: data.videoThumbnail?.trim() || null,
+      publishedAt: data.publishedAt || null,
+    };
     
-    createNewsMutation.mutate(data);
+    createNewsMutation.mutate(cleanData);
   };
 
   // Form reset when news prop changes
@@ -150,40 +165,36 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     if (news) {
       form.reset({
         title: news.title || '',
-        slug: news.slug || '',
-        summary: news.summary || '',
         content: news.content || '',
         categoryId: news.categoryId || undefined,
         status: news.status || 'draft',
-        featuredImage: news.featuredImage || '',
-        metaTitle: news.metaTitle || '',
-        metaDescription: news.metaDescription || '',
-        authorId: news.authorId || 1,
-        keywords: news.keywords || '',
-        cityId: news.cityId || undefined,
-        sourceId: news.sourceId || undefined,
-        editorId: news.editorId || undefined,
-        videoUrl: news.videoUrl || '',
-        videoThumbnail: news.videoThumbnail || '',
+        summary: news.summary,
+        featuredImage: news.featuredImage,
+        metaTitle: news.metaTitle,
+        metaDescription: news.metaDescription,
+        keywords: news.keywords,
+        cityId: news.cityId,
+        sourceId: news.sourceId,
+        editorId: news.editorId,
+        videoUrl: news.videoUrl,
+        videoThumbnail: news.videoThumbnail,
       });
     } else if (isOpen) {
       form.reset({
         title: '',
-        slug: '',
-        summary: '',
         content: '',
         categoryId: undefined,
         status: 'draft',
-        featuredImage: '',
-        metaTitle: '',
-        metaDescription: '',
-        authorId: 1,
-        keywords: '',
-        cityId: undefined,
-        sourceId: undefined,
-        editorId: undefined,
-        videoUrl: '',
-        videoThumbnail: '',
+        summary: null,
+        featuredImage: null,
+        metaTitle: null,
+        metaDescription: null,
+        keywords: null,
+        cityId: null,
+        sourceId: null,
+        editorId: null,
+        videoUrl: null,
+        videoThumbnail: null,
       });
     }
   }, [news, isOpen, form]);
