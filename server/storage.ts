@@ -1222,6 +1222,7 @@ export class MemStorage implements IStorage {
 
 // Database Storage Implementation
 export class DatabaseStorage implements IStorage {
+  private db = db;
   // Users
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -2025,7 +2026,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementClassifiedAdViews(id: number): Promise<void> {
-    await this.db
+    await db
       .update(classifiedAds)
       .set({
         viewCount: sql`${classifiedAds.viewCount} + 1`,
@@ -2035,7 +2036,7 @@ export class DatabaseStorage implements IStorage {
 
   // Newspaper Pages methods
   async getNewspaperPage(id: number): Promise<NewspaperPage | undefined> {
-    const [page] = await this.db
+    const [page] = await db
       .select()
       .from(newspaperPages)
       .where(eq(newspaperPages.id, id));
@@ -2043,7 +2044,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createNewspaperPage(insertPage: InsertNewspaperPage): Promise<NewspaperPage> {
-    const [page] = await this.db
+    const [page] = await db
       .insert(newspaperPages)
       .values(insertPage)
       .returning();
@@ -2051,7 +2052,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateNewspaperPage(id: number, pageUpdate: Partial<InsertNewspaperPage>): Promise<NewspaperPage | undefined> {
-    const [page] = await this.db
+    const [page] = await db
       .update(newspaperPages)
       .set({ ...pageUpdate, updatedAt: new Date() })
       .where(eq(newspaperPages.id, id))
@@ -2060,14 +2061,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllNewspaperPages(): Promise<NewspaperPage[]> {
-    return await this.db
+    return await db
       .select()
       .from(newspaperPages)
       .orderBy(desc(newspaperPages.issueDate));
   }
 
   async deleteNewspaperPage(id: number): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(newspaperPages)
       .where(eq(newspaperPages.id, id));
     return result.rowCount > 0;
@@ -2075,7 +2076,7 @@ export class DatabaseStorage implements IStorage {
 
   // Digital Magazines methods
   async getDigitalMagazine(id: number): Promise<DigitalMagazine | undefined> {
-    const [magazine] = await this.db
+    const [magazine] = await db
       .select()
       .from(digitalMagazines)
       .where(eq(digitalMagazines.id, id));
@@ -2083,7 +2084,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDigitalMagazine(insertMagazine: InsertDigitalMagazine): Promise<DigitalMagazine> {
-    const [magazine] = await this.db
+    const [magazine] = await db
       .insert(digitalMagazines)
       .values(insertMagazine)
       .returning();
@@ -2091,7 +2092,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDigitalMagazine(id: number, magazineUpdate: Partial<InsertDigitalMagazine>): Promise<DigitalMagazine | undefined> {
-    const [magazine] = await this.db
+    const [magazine] = await db
       .update(digitalMagazines)
       .set({ ...magazineUpdate, updatedAt: new Date() })
       .where(eq(digitalMagazines.id, id))
@@ -2100,7 +2101,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
-    let query = this.db.select().from(digitalMagazines);
+    let query = db.select().from(digitalMagazines);
     
     if (filters) {
       const conditions: any[] = [];
@@ -2123,14 +2124,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDigitalMagazine(id: number): Promise<boolean> {
-    const result = await this.db
+    const result = await db
       .delete(digitalMagazines)
       .where(eq(digitalMagazines.id, id));
     return result.rowCount > 0;
   }
 
   async incrementDownloadCount(id: number): Promise<void> {
-    await this.db
+    await db
       .update(digitalMagazines)
       .set({ 
         downloadCount: sql`${digitalMagazines.downloadCount} + 1`
