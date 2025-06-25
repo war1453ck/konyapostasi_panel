@@ -30,6 +30,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { insertCategorySchema } from '@shared/schema';
@@ -43,10 +56,15 @@ type CategoryFormData = {
   parentId?: number | null;
 };
 
+type SortOption = 'name' | 'newsCount' | 'createdAt';
+type ViewMode = 'cards' | 'table';
+
 export default function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithChildren | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -163,11 +181,29 @@ export default function Categories() {
     createCategoryMutation.mutate(data);
   };
 
-  // Filter categories based on search query
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Filter and sort categories
+  const filteredAndSortedCategories = categories
+    .filter(category =>
+      category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name, 'tr');
+        case 'newsCount':
+          return (b.newsCount || 0) - (a.newsCount || 0);
+        case 'createdAt':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        default:
+          return 0;
+      }
+    });
+
+  // Calculate statistics
+  const totalCategories = categories.length;
+  const totalNews = categories.reduce((sum, cat) => sum + (cat.newsCount || 0), 0);
+  const avgNewsPerCategory = totalCategories > 0 ? Math.round(totalNews / totalCategories) : 0;
 
   if (isLoading) {
     return (
@@ -184,8 +220,8 @@ export default function Categories() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
         <div className="flex-1">
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kategoriler</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Haber kategorilerini yönetin</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kategori Yönetimi</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Profesyonel kategori organizasyonu ve analizi</p>
         </div>
         <Button onClick={handleCreateCategory} className="w-full sm:w-auto min-h-[44px]">
           <LucideIcons.Plus className="w-4 h-4 mr-2" />
@@ -194,24 +230,216 @@ export default function Categories() {
         </Button>
       </div>
 
-      {/* Categories Table */}
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <LucideIcons.Tags className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Toplam Kategori</p>
+                <p className="text-2xl font-bold">{totalCategories}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <LucideIcons.FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Toplam Haber</p>
+                <p className="text-2xl font-bold">{totalNews}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                <LucideIcons.BarChart3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ortalama/Kategori</p>
+                <p className="text-2xl font-bold">{avgNewsPerCategory}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                <LucideIcons.TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Aktif Sonuç</p>
+                <p className="text-2xl font-bold">{filteredAndSortedCategories.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Advanced Filters */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-            <CardTitle>Kategori Listesi</CardTitle>
-            <Input
-              placeholder="Kategori ara..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 min-h-[44px]"
-            />
-          </div>
+          <CardTitle>Filtreleme ve Kontroller</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Desktop Table View */}
-          <div className="hidden lg:block">
-            <Table>
-              <TableHeader>
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Kategori ara..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="min-h-[44px]"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                <SelectTrigger className="w-full sm:w-48 min-h-[44px]">
+                  <SelectValue placeholder="Sırala" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Ad (A-Z)</SelectItem>
+                  <SelectItem value="newsCount">Haber Sayısı</SelectItem>
+                  <SelectItem value="createdAt">Tarih (Yeni)</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="flex rounded-lg border overflow-hidden">
+                <Button
+                  variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('cards')}
+                  className="rounded-none border-0 min-h-[44px]"
+                >
+                  <LucideIcons.Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="rounded-none border-0 min-h-[44px]"
+                >
+                  <LucideIcons.List className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Categories List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Kategoriler ({filteredAndSortedCategories.length} sonuç)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Professional Cards View */}
+          {viewMode === 'cards' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredAndSortedCategories.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="text-muted-foreground">
+                    <LucideIcons.Tags className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium mb-2">
+                      {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz kategori bulunmuyor'}
+                    </h3>
+                    <p className="text-sm">
+                      {searchQuery ? 'Farklı anahtar kelimeler deneyin' : 'Yeni kategori ekleyerek başlayın'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                filteredAndSortedCategories.map((category) => (
+                  <Card key={category.id} className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <LucideIcons.Tag className="w-4 h-4 text-primary" />
+                            </div>
+                            <h3 className="font-semibold text-lg truncate group-hover:text-primary transition-colors">
+                              {category.name}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded">
+                            /{category.slug}
+                          </p>
+                        </div>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <LucideIcons.MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditCategory(category)}>
+                              <LucideIcons.Edit className="w-4 h-4 mr-2" />
+                              Düzenle
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => deleteCategoryMutation.mutate(category.id)}
+                              disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
+                              className="text-destructive"
+                            >
+                              <LucideIcons.Trash className="w-4 h-4 mr-2" />
+                              Sil
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      {category.description && (
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                          {category.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-1 text-sm">
+                            <LucideIcons.FileText className="w-4 h-4 text-blue-500" />
+                            <span className="font-medium">{category.newsCount || 0}</span>
+                            <span className="text-muted-foreground">haber</span>
+                          </div>
+                          
+                          {(category.newsCount || 0) > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              Aktif
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(category.createdAt).toLocaleDateString('tr-TR')}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
                 <TableRow>
                   <TableHead>Kategori Adı</TableHead>
                   <TableHead>Slug</TableHead>
@@ -221,7 +449,7 @@ export default function Categories() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCategories.length === 0 ? (
+                {filteredAndSortedCategories.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
                       <div className="text-muted-foreground">
@@ -231,7 +459,7 @@ export default function Categories() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCategories.map((category) => (
+                  filteredAndSortedCategories.map((category) => (
                     <TableRow key={category.id}>
                       <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell className="text-muted-foreground">{category.slug}</TableCell>
@@ -273,7 +501,7 @@ export default function Categories() {
 
           {/* Mobile Card View */}
           <div className="block lg:hidden space-y-3">
-            {filteredCategories.length === 0 ? (
+            {filteredAndSortedCategories.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-muted-foreground">
                   <LucideIcons.Tags className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -281,7 +509,7 @@ export default function Categories() {
                 </div>
               </div>
             ) : (
-              filteredCategories.map((category) => (
+              filteredAndSortedCategories.map((category) => (
                 <Card key={category.id} className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
@@ -335,6 +563,8 @@ export default function Categories() {
               ))
             )}
           </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
