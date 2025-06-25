@@ -389,19 +389,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="source"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kaynak (Metin)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ek kaynak bilgisi..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                 </div>
 
                 <FormField
