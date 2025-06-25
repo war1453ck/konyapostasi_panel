@@ -541,6 +541,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error('Error loading route modules:', error);
   }
 
+  // Magazine Categories endpoints
+  app.get("/api/magazine-categories", async (_req, res) => {
+    try {
+      const categories = await storage.getAllMagazineCategories();
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/magazine-categories", async (req, res) => {
+    try {
+      const category = await storage.createMagazineCategory(req.body);
+      res.status(201).json(category);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/magazine-categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const category = await storage.updateMagazineCategory(id, req.body);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(category);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/magazine-categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteMagazineCategory(id);
+      if (!success) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

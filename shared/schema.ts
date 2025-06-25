@@ -206,6 +206,21 @@ export const insertNewspaperPageSchema = createInsertSchema(newspaperPages).omit
   updatedAt: true,
 });
 
+// Magazine Categories Table
+export const magazineCategories = pgTable('magazine_categories', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  description: text('description'),
+  color: varchar('color', { length: 7 }).default('#3B82F6'), // Hex color code
+  icon: varchar('icon', { length: 50 }).default('BookOpen'), // Lucide icon name
+  parentId: integer('parent_id'),
+  sortOrder: integer('sort_order').default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Digital Magazine Table
 export const digitalMagazines = pgTable('digital_magazines', {
   id: serial('id').primaryKey(),
@@ -216,7 +231,7 @@ export const digitalMagazines = pgTable('digital_magazines', {
   coverImageUrl: varchar('cover_image_url', { length: 500 }).notNull(),
   pdfUrl: varchar('pdf_url', { length: 500 }),
   description: text('description'),
-  category: varchar('category', { length: 100 }),
+  categoryId: integer('category_id'),
   isPublished: boolean('is_published').default(false),
   isFeatured: boolean('is_featured').default(false),
   tags: text('tags').array(),
@@ -226,6 +241,36 @@ export const digitalMagazines = pgTable('digital_magazines', {
   downloadCount: integer('download_count').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Magazine Categories Relations
+export const magazineCategoriesRelations = relations(magazineCategories, ({ one, many }) => ({
+  parent: one(magazineCategories, {
+    fields: [magazineCategories.parentId],
+    references: [magazineCategories.id],
+  }),
+  children: many(magazineCategories),
+  magazines: many(digitalMagazines),
+}));
+
+// Digital Magazines Relations
+export const digitalMagazinesRelations = relations(digitalMagazines, ({ one }) => ({
+  category: one(magazineCategories, {
+    fields: [digitalMagazines.categoryId],
+    references: [magazineCategories.id],
+  }),
+  publisher: one(users, {
+    fields: [digitalMagazines.publisherId],
+    references: [users.id],
+  }),
+}));
+
+export type MagazineCategory = typeof magazineCategories.$inferSelect;
+export type InsertMagazineCategory = typeof magazineCategories.$inferInsert;
+export const insertMagazineCategorySchema = createInsertSchema(magazineCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export type DigitalMagazine = typeof digitalMagazines.$inferSelect;
@@ -297,6 +342,16 @@ export type ArticleWithDetails = Article & {
 export type CategoryWithChildren = Category & {
   children?: Category[];
   newsCount?: number;
+};
+
+export type MagazineCategoryWithChildren = MagazineCategory & {
+  children?: MagazineCategory[];
+  magazineCount?: number;
+};
+
+export type DigitalMagazineWithDetails = DigitalMagazine & {
+  category?: Pick<MagazineCategory, 'id' | 'name' | 'slug' | 'color'>;
+  publisher: Pick<User, 'id' | 'firstName' | 'lastName' | 'username'>;
 };
 
 export type CommentWithNews = Comment & {

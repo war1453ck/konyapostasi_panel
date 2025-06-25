@@ -1,5 +1,5 @@
 import { 
-  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds, newspaperPages, digitalMagazines,
+  users, categories, cities, news, articles, comments, media, advertisements, classifiedAds, newspaperPages, digitalMagazines, magazineCategories,
   type User, type InsertUser,
   type Category, type InsertCategory, type CategoryWithChildren,
   type City, type InsertCity,
@@ -11,6 +11,7 @@ import {
   type ClassifiedAd, type InsertClassifiedAd, type ClassifiedAdWithApprover,
   type NewspaperPage, type InsertNewspaperPage,
   type DigitalMagazine, type InsertDigitalMagazine,
+  type MagazineCategory, type InsertMagazineCategory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, and, or, desc, sql } from "drizzle-orm";
@@ -112,7 +113,15 @@ export interface IStorage {
   getDigitalMagazine(id: number): Promise<DigitalMagazine | undefined>;
   createDigitalMagazine(magazine: InsertDigitalMagazine): Promise<DigitalMagazine>;
   updateDigitalMagazine(id: number, magazine: Partial<InsertDigitalMagazine>): Promise<DigitalMagazine | undefined>;
-  getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]>;
+  getAllDigitalMagazines(filters?: { isPublished?: boolean; categoryId?: number; isFeatured?: boolean }): Promise<DigitalMagazine[]>;
+
+  // Magazine Categories
+  getMagazineCategory(id: number): Promise<MagazineCategory | undefined>;
+  getMagazineCategoryBySlug(slug: string): Promise<MagazineCategory | undefined>;
+  createMagazineCategory(category: InsertMagazineCategory): Promise<MagazineCategory>;
+  updateMagazineCategory(id: number, category: Partial<InsertMagazineCategory>): Promise<MagazineCategory | undefined>;
+  deleteMagazineCategory(id: number): Promise<boolean>;
+  getAllMagazineCategories(): Promise<MagazineCategory[]>;
   deleteDigitalMagazine(id: number): Promise<boolean>;
   incrementDownloadCount(id: number): Promise<void>;
 }
@@ -386,7 +395,7 @@ export class MemStorage implements IStorage {
       coverImageUrl: 'https://via.placeholder.com/400x600/0066cc/fff?text=Dergi+45',
       pdfUrl: null,
       description: 'Teknolojinin günlük yaşama etkilerini inceleyen kapsamlı dergi',
-      category: 'Teknoloji',
+      categoryId: 1,
       isPublished: true,
       isFeatured: true,
       tags: ['teknoloji', 'yaşam', 'gelecek'],
@@ -407,7 +416,7 @@ export class MemStorage implements IStorage {
       coverImageUrl: 'https://via.placeholder.com/400x600/cc6600/fff?text=Dergi+23',
       pdfUrl: null,
       description: 'Yerel kültür ve sanat etkinliklerine odaklanan aylık dergi',
-      category: 'Kültür',
+      categoryId: 2,
       isPublished: true,
       isFeatured: false,
       tags: ['kültür', 'sanat', 'yerel'],
@@ -1164,7 +1173,7 @@ export class MemStorage implements IStorage {
       id: this.currentDigitalMagazineId++,
       ...insertMagazine,
       description: insertMagazine.description ?? null,
-      category: insertMagazine.category ?? null,
+      categoryId: insertMagazine.categoryId ?? null,
       pdfUrl: insertMagazine.pdfUrl ?? null,
       isPublished: insertMagazine.isPublished ?? false,
       isFeatured: insertMagazine.isFeatured ?? false,
@@ -1190,15 +1199,15 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
-  async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
+  async getAllDigitalMagazines(filters?: { isPublished?: boolean; categoryId?: number; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
     let magazines = Array.from(this.digitalMagazines.values());
     
     if (filters) {
       if (filters.isPublished !== undefined) {
         magazines = magazines.filter(m => m.isPublished === filters.isPublished);
       }
-      if (filters.category) {
-        magazines = magazines.filter(m => m.category === filters.category);
+      if (filters.categoryId) {
+        magazines = magazines.filter(m => m.categoryId === filters.categoryId);
       }
       if (filters.isFeatured !== undefined) {
         magazines = magazines.filter(m => m.isFeatured === filters.isFeatured);
@@ -2100,7 +2109,7 @@ export class DatabaseStorage implements IStorage {
     return magazine;
   }
 
-  async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
+  async getAllDigitalMagazines(filters?: { isPublished?: boolean; categoryId?: number; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
     try {
       const conditions: any[] = [];
       
@@ -2108,8 +2117,8 @@ export class DatabaseStorage implements IStorage {
         if (filters.isPublished !== undefined) {
           conditions.push(eq(digitalMagazines.isPublished, filters.isPublished));
         }
-        if (filters.category) {
-          conditions.push(eq(digitalMagazines.category, filters.category));
+        if (filters.categoryId) {
+          conditions.push(eq(digitalMagazines.categoryId, filters.categoryId));
         }
         if (filters.isFeatured !== undefined) {
           conditions.push(eq(digitalMagazines.isFeatured, filters.isFeatured));
@@ -2128,6 +2137,53 @@ export class DatabaseStorage implements IStorage {
       console.error('Error fetching digital magazines:', error);
       return [];
     }
+  }
+
+  // Magazine Categories
+  async getMagazineCategory(id: number): Promise<MagazineCategory | undefined> {
+    try {
+      const [category] = await db.select().from(magazineCategories).where(eq(magazineCategories.id, id));
+      return category || undefined;
+    } catch (error) {
+      console.error('Error fetching magazine category:', error);
+      return undefined;
+    }
+  }
+
+  async getMagazineCategoryBySlug(slug: string): Promise<MagazineCategory | undefined> {
+    try {
+      const [category] = await db.select().from(magazineCategories).where(eq(magazineCategories.slug, slug));
+      return category || undefined;
+    } catch (error) {
+      console.error('Error fetching magazine category by slug:', error);
+      return undefined;
+    }
+  }
+
+  async createMagazineCategory(insertCategory: InsertMagazineCategory): Promise<MagazineCategory> {
+    const [category] = await db
+      .insert(magazineCategories)
+      .values(insertCategory)
+      .returning();
+    return category;
+  }
+
+  async updateMagazineCategory(id: number, categoryUpdate: Partial<InsertMagazineCategory>): Promise<MagazineCategory | undefined> {
+    const [category] = await db
+      .update(magazineCategories)
+      .set(categoryUpdate)
+      .where(eq(magazineCategories.id, id))
+      .returning();
+    return category || undefined;
+  }
+
+  async deleteMagazineCategory(id: number): Promise<boolean> {
+    const result = await db.delete(magazineCategories).where(eq(magazineCategories.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getAllMagazineCategories(): Promise<MagazineCategory[]> {
+    return db.select().from(magazineCategories).orderBy(magazineCategories.sortOrder, magazineCategories.name);
   }
 
   async deleteDigitalMagazine(id: number): Promise<boolean> {

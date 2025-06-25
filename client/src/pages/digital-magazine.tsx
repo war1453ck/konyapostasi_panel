@@ -32,7 +32,7 @@ const digitalMagazineSchema = z.object({
   coverImageUrl: z.string().min(1, 'Kapak görseli gereklidir'),
   pdfUrl: z.string().optional().or(z.literal('')),
   description: z.string().optional(),
-  category: z.string().optional(),
+  categoryId: z.number().optional(),
   isPublished: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
   tags: z.string().optional(),
@@ -42,23 +42,12 @@ const digitalMagazineSchema = z.object({
 
 type DigitalMagazineFormData = z.infer<typeof digitalMagazineSchema>;
 
-const categories = [
-  'Teknoloji',
-  'Kültür',
-  'Sanat',
-  'Bilim',
-  'Spor',
-  'Sağlık',
-  'Eğitim',
-  'Ekonomi',
-  'Seyahat',
-  'Yaşam'
-];
+// Categories will be fetched from API
 
 export default function DigitalMagazinePage() {
   const [filters, setFilters] = useState({
     search: '',
-    category: 'all',
+    categoryId: 'all',
     isPublished: 'all',
     isFeatured: 'all'
   });
@@ -81,7 +70,7 @@ export default function DigitalMagazinePage() {
       coverImageUrl: '',
       pdfUrl: '',
       description: '',
-      category: '',
+      categoryId: undefined,
       isPublished: false,
       isFeatured: false,
       tags: '',
@@ -92,6 +81,10 @@ export default function DigitalMagazinePage() {
 
   const { data: magazines = [], isLoading } = useQuery({
     queryKey: ['/api/digital-magazines'],
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['/api/magazine-categories'],
   });
 
   const createMagazineMutation = useMutation({
@@ -167,7 +160,8 @@ export default function DigitalMagazinePage() {
   const filteredMagazines = magazines.filter((magazine: DigitalMagazine) => {
     const matchesSearch = magazine.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                          magazine.description?.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesCategory = !filters.category || filters.category === 'all' || magazine.category === filters.category;
+    const matchesCategory = !filters.categoryId || filters.categoryId === 'all' || 
+                           magazine.categoryId?.toString() === filters.categoryId;
     const matchesPublished = filters.isPublished === '' || filters.isPublished === 'all' || 
                            (filters.isPublished === 'true' ? magazine.isPublished : !magazine.isPublished);
     const matchesFeatured = filters.isFeatured === '' || filters.isFeatured === 'all' || 
@@ -210,7 +204,7 @@ export default function DigitalMagazinePage() {
       coverImageUrl: magazine.coverImageUrl,
       pdfUrl: magazine.pdfUrl || '',
       description: magazine.description || '',
-      category: magazine.category || '',
+      categoryId: magazine.categoryId || undefined,
       isPublished: magazine.isPublished,
       isFeatured: magazine.isFeatured,
       tags: magazine.tags?.join(', ') || '',
@@ -395,17 +389,17 @@ export default function DigitalMagazinePage() {
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
             />
             <Select
-              value={filters.category}
-              onValueChange={(value) => setFilters({ ...filters, category: value })}
+              value={filters.categoryId}
+              onValueChange={(value) => setFilters({ ...filters, categoryId: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Kategori seçin" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tüm Kategoriler</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {categories.map((category: any) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -637,9 +631,9 @@ export default function DigitalMagazinePage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
+                          {categories.map((category: any) => (
+                            <SelectItem key={category.id} value={category.id.toString()}>
+                              {category.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
