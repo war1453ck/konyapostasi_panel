@@ -205,7 +205,14 @@ export default function Dashboard() {
       {/* News Modal */}
       <NewsModal
         isOpen={isNewsModalOpen}
-        onClose={() => setIsNewsModalOpen(false)}
+        onClose={handleCloseModal}
+        news={selectedNews}
+      />
+
+      {/* News Preview Modal */}
+      <NewsPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={handleClosePreviewModal}
         news={selectedNews}
       />
     </div>

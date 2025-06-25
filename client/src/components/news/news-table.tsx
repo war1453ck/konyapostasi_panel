@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { NEWS_STATUS_LABELS } from '@/lib/constants';
+import { isValidYouTubeUrl } from '@/lib/youtube';
 import type { NewsWithDetails } from '@shared/schema';
 import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
