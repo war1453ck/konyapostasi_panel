@@ -1114,6 +1114,94 @@ export class MemStorage implements IStorage {
       this.classifiedAds.set(id, ad);
     }
   }
+
+  // Newspaper Pages methods
+  async getNewspaperPage(id: number): Promise<NewspaperPage | undefined> {
+    return this.newspaperPages.get(id);
+  }
+
+  async createNewspaperPage(insertPage: InsertNewspaperPage): Promise<NewspaperPage> {
+    const page: NewspaperPage = { 
+      id: this.currentNewspaperPageId++,
+      ...insertPage,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.newspaperPages.set(page.id, page);
+    return page;
+  }
+
+  async updateNewspaperPage(id: number, pageUpdate: Partial<InsertNewspaperPage>): Promise<NewspaperPage | undefined> {
+    const page = this.newspaperPages.get(id);
+    if (page) {
+      Object.assign(page, pageUpdate, { updatedAt: new Date() });
+      return page;
+    }
+    return undefined;
+  }
+
+  async getAllNewspaperPages(): Promise<NewspaperPage[]> {
+    return Array.from(this.newspaperPages.values());
+  }
+
+  async deleteNewspaperPage(id: number): Promise<boolean> {
+    return this.newspaperPages.delete(id);
+  }
+
+  // Digital Magazines methods
+  async getDigitalMagazine(id: number): Promise<DigitalMagazine | undefined> {
+    return this.digitalMagazines.get(id);
+  }
+
+  async createDigitalMagazine(insertMagazine: InsertDigitalMagazine): Promise<DigitalMagazine> {
+    const magazine: DigitalMagazine = { 
+      id: this.currentDigitalMagazineId++,
+      ...insertMagazine,
+      downloadCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.digitalMagazines.set(magazine.id, magazine);
+    return magazine;
+  }
+
+  async updateDigitalMagazine(id: number, magazineUpdate: Partial<InsertDigitalMagazine>): Promise<DigitalMagazine | undefined> {
+    const magazine = this.digitalMagazines.get(id);
+    if (magazine) {
+      Object.assign(magazine, magazineUpdate, { updatedAt: new Date() });
+      return magazine;
+    }
+    return undefined;
+  }
+
+  async getAllDigitalMagazines(filters?: { isPublished?: boolean; category?: string; isFeatured?: boolean }): Promise<DigitalMagazine[]> {
+    let magazines = Array.from(this.digitalMagazines.values());
+    
+    if (filters) {
+      if (filters.isPublished !== undefined) {
+        magazines = magazines.filter(m => m.isPublished === filters.isPublished);
+      }
+      if (filters.category) {
+        magazines = magazines.filter(m => m.category === filters.category);
+      }
+      if (filters.isFeatured !== undefined) {
+        magazines = magazines.filter(m => m.isFeatured === filters.isFeatured);
+      }
+    }
+    
+    return magazines;
+  }
+
+  async deleteDigitalMagazine(id: number): Promise<boolean> {
+    return this.digitalMagazines.delete(id);
+  }
+
+  async incrementDownloadCount(id: number): Promise<void> {
+    const magazine = this.digitalMagazines.get(id);
+    if (magazine) {
+      magazine.downloadCount = (magazine.downloadCount || 0) + 1;
+    }
+  }
 }
 
 // Database Storage Implementation

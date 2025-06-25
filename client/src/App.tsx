@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -35,6 +36,7 @@ function Router() {
         <Route path="/media" component={Media} />
         <Route path="/comments" component={Comments} />
         <Route path="/newspaper" component={Newspaper} />
+        <Route path="/digital-magazine" component={lazy(() => import('./pages/digital-magazine'))} />
         <Route path="/advertisements" component={Advertisements} />
         <Route path="/classified-ads" component={ClassifiedAds} />
         <Route path="/seo" component={SEO} />

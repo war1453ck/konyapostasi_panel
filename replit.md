@@ -155,6 +155,18 @@ This is a full-stack news content management system built with React, Express, a
 - Price and location fields
 - View count tracking
 
+✓ **Digital Magazine Module** (June 25, 2025)
+- Professional magazine management system
+- Cover image and PDF file upload support
+- Issue numbering and volume tracking
+- Category system (Technology, Culture, Art, etc.)
+- Publishing and featured article options
+- File upload system (covers and PDFs up to 10MB)
+- Mobile responsive design
+- Filtering and search capabilities
+- Card and list view modes
+- Download count tracking
+
 ## Changelog
 
 ```

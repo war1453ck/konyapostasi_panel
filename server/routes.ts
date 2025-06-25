@@ -325,7 +325,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
   // Advertisement routes
   app.get("/api/advertisements", async (req, res) => {
     try {
@@ -518,5 +517,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Import and use route modules
+  try {
+    const articlesModule = await import('./routes/articles');
+    const citiesModule = await import('./routes/cities');
+    const advertisementsModule = await import('./routes/advertisements');
+    const classifiedAdsModule = await import('./routes/classified-ads');
+    const newspaperPagesModule = await import('./routes/newspaper-pages');
+    const digitalMagazinesModule = await import('./routes/digital-magazines');
+    const uploadModule = await import('./routes/upload');
+
+    if (articlesModule.default) app.use('/api/articles', articlesModule.default);
+    if (citiesModule.default) app.use('/api/cities', citiesModule.default);
+    if (advertisementsModule.default) app.use('/api/advertisements', advertisementsModule.default);
+    if (classifiedAdsModule.default) app.use('/api/classified-ads', classifiedAdsModule.default);
+    if (newspaperPagesModule.default) app.use('/api/newspaper-pages', newspaperPagesModule.default);
+    if (digitalMagazinesModule.default) app.use('/api/digital-magazines', digitalMagazinesModule.default);
+    if (uploadModule.default) {
+      app.use('/api/upload', uploadModule.default);
+      app.use('/uploads', uploadModule.default);
+    }
+  } catch (error) {
+    console.error('Error loading route modules:', error);
+  }
+
+  const httpServer = createServer(app);
   return httpServer;
 }
