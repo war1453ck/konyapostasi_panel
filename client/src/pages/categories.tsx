@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -42,6 +43,8 @@ export default function Categories() {
   const [sortBy, setSortBy] = useState<SortOption>('sortOrder');
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryWithChildren | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,6 +102,8 @@ export default function Categories() {
         title: 'Başarılı',
         description: 'Kategori silindi',
       });
+      setDeleteConfirmOpen(false);
+      setCategoryToDelete(null);
     },
     onError: () => {
       toast({
@@ -106,8 +111,21 @@ export default function Categories() {
         description: 'Kategori silinirken bir hata oluştu',
         variant: 'destructive',
       });
+      setDeleteConfirmOpen(false);
+      setCategoryToDelete(null);
     }
   });
+
+  const handleDeleteClick = (category: CategoryWithChildren) => {
+    setCategoryToDelete(category);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (categoryToDelete) {
+      deleteCategoryMutation.mutate(categoryToDelete.id);
+    }
+  };
 
   const reorderCategoriesMutation = useMutation({
     mutationFn: async (categoryOrders: { id: number; sortOrder: number }[]) => {
@@ -466,7 +484,7 @@ export default function Categories() {
                                           Düzenle
                                         </DropdownMenuItem>
                                         <DropdownMenuItem 
-                                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                                          onClick={() => handleDeleteClick(category)}
                                           disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
                                           className="text-destructive"
                                         >
@@ -570,7 +588,7 @@ export default function Categories() {
                                           Düzenle
                                         </DropdownMenuItem>
                                         <DropdownMenuItem 
-                                          onClick={() => deleteCategoryMutation.mutate(category.id)}
+                                          onClick={() => handleDeleteClick(category)}
                                           disabled={deleteCategoryMutation.isPending || (category.newsCount || 0) > 0}
                                           className="text-destructive"
                                         >
@@ -748,6 +766,48 @@ export default function Categories() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kategoriyi Sil</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>"{categoryToDelete?.name}"</strong> kategorisini silmek istediğinizden emin misiniz? 
+              Bu işlem geri alınamaz.
+              {(categoryToDelete?.newsCount || 0) > 0 && (
+                <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                  <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                    <LucideIcons.AlertTriangle className="w-4 h-4 inline mr-1" />
+                    Bu kategoride {categoryToDelete?.newsCount} haber bulunmaktadır. 
+                    Kategoriyi silmeden önce haberleri başka kategorilere taşıyın.
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteCategoryMutation.isPending || (categoryToDelete?.newsCount || 0) > 0}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteCategoryMutation.isPending ? (
+                <>
+                  <LucideIcons.Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Siliniyor...
+                </>
+              ) : (
+                <>
+                  <LucideIcons.Trash className="w-4 h-4 mr-2" />
+                  Sil
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
