@@ -152,7 +152,7 @@ export function NewsTable({ onEdit, onPreview }: NewsTableProps) {
                 <SelectValue placeholder="Durum" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tümü</SelectItem>
+                <SelectItem value="all">Tümü</SelectItem>
                 <SelectItem value="draft">Taslak</SelectItem>
                 <SelectItem value="review">İncelemede</SelectItem>
                 <SelectItem value="published">Yayında</SelectItem>
@@ -164,7 +164,7 @@ export function NewsTable({ onEdit, onPreview }: NewsTableProps) {
                 <SelectValue placeholder="Kategori" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tüm Kategoriler</SelectItem>
+                <SelectItem value="all">Tüm Kategoriler</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name}

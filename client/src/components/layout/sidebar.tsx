@@ -81,14 +81,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       <div className="ml-6 mt-1 space-y-1">
                         {item.children.map((child) => (
                           <Link key={child.key} href={child.path}>
-                            <a className={cn(
-                              "block px-3 py-1 text-sm rounded transition-colors",
+                            <div className={cn(
+                              "block px-3 py-1 text-sm rounded transition-colors cursor-pointer",
                               isActiveLink(child.path)
-                                ? "text-primary bg-primary/10 font-medium"
+                                ? "text-primary bg-accent font-medium"
                                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
                             )}>
                               {child.label}
-                            </a>
+                            </div>
                           </Link>
                         ))}
                       </div>
@@ -96,13 +96,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   </div>
                 ) : (
                   <Link href={item.path}>
-                    <a className={cn(
-                      "sidebar-link",
+                    <div className={cn(
+                      "sidebar-link cursor-pointer",
                       isActiveLink(item.path) && "sidebar-link-active"
                     )}>
                       {getIcon(item.icon)}
                       <span className="ml-3">{item.label}</span>
-                    </a>
+                    </div>
                   </Link>
                 )}
               </div>

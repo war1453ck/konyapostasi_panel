@@ -157,7 +157,7 @@ export default function Comments() {
               <SelectValue placeholder="Durum" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tümü</SelectItem>
+              <SelectItem value="all">Tümü</SelectItem>
               <SelectItem value="pending">Beklemede</SelectItem>
               <SelectItem value="approved">Onaylandı</SelectItem>
               <SelectItem value="rejected">Reddedildi</SelectItem>
