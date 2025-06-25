@@ -264,7 +264,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
         <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="pb-24 sm:pb-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="pb-4">
               <div className="space-y-4 sm:space-y-6">
                 {/* Temel Bilgiler */}
                 <Card>
@@ -674,7 +674,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
           </Form>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 sm:relative sm:bottom-auto bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 border-t px-4 py-3 sm:px-6 z-50">
+        <div className="bg-background border-t px-4 py-3 sm:px-6">
           <div className="flex flex-row justify-between sm:justify-end gap-2 sm:gap-3 max-w-4xl mx-auto">
             <Button 
               type="button" 
