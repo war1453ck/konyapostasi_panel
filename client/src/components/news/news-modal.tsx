@@ -255,7 +255,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-screen overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {news ? 'Haberi Düzenle' : 'Yeni Haber Oluştur'}
@@ -264,29 +264,357 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="content">İçerik</TabsTrigger>
-                <TabsTrigger value="media">Medya</TabsTrigger>
-                <TabsTrigger value="seo">SEO</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="content" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-8">
+              {/* Temel Bilgiler */}
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Temel Bilgiler</h3>
+                  
                   <FormField
                     control={form.control}
                     name="title"
                     render={({ field }) => (
-                      <FormItem className="md:col-span-2">
+                      <FormItem>
                         <FormLabel>Haber Başlığı</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Haber başlığını girin..."
                             {...field}
+                            value={field.value || ''}
                             onChange={(e) => {
                               field.onChange(e);
                               handleTitleChange(e.target.value);
                             }}
+                            className="text-base"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL Slug</FormLabel>
+                          <FormControl>
+                            <Input placeholder="url-slug" {...field} value={field.value || ''} className="text-base" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="categoryId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kategori</FormLabel>
+                          <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Kategori seçin..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id.toString()}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="cityId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Şehir</FormLabel>
+                          <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Şehir seçin..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Şehir Seçilmedi</SelectItem>
+                              {cities.map((city: any) => (
+                                <SelectItem key={city.id} value={city.id.toString()}>
+                                  {city.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="editorId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Editör</FormLabel>
+                          <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Editör seçin..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Editör Atanmadı</SelectItem>
+                              <SelectItem value="1">Admin User</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="sourceId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Haber Kaynağı</FormLabel>
+                          <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Kaynak seçin..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Kaynak Seçilmedi</SelectItem>
+                              {sources.map((source: any) => (
+                                <SelectItem key={source.id} value={source.id.toString()}>
+                                  {source.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="summary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Özet</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Haber özeti..."
+                            rows={3}
+                            {...field}
+                            value={field.value || ''}
+                            className="text-base resize-none"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* İçerik */}
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">İçerik</h3>
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <RichTextEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Haber içeriğini yazın..."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Medya */}
+              <Card>
+                <CardContent className="pt-6 space-y-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Medya</h3>
+                  
+                  {/* Kapak Görseli */}
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="featuredImage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kapak Görseli</FormLabel>
+                          <FormControl>
+                            <div className="space-y-4">
+                              <Input
+                                placeholder="Görsel URL'si girin..."
+                                {...field}
+                                value={field.value || ''}
+                                className="text-base"
+                              />
+                              <FileUpload
+                                onFileUpload={(files) => {
+                                  console.log('Files uploaded:', files);
+                                }}
+                                accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] }}
+                                maxFiles={1}
+                                className="border-dashed min-h-[120px]"
+                              />
+                              {field.value && (
+                                <div className="relative">
+                                  <img
+                                    src={field.value}
+                                    alt="Kapak görseli"
+                                    className="max-w-full h-40 object-cover rounded-lg"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute top-2 right-2"
+                                    onClick={() => field.onChange('')}
+                                  >
+                                    Kaldır
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Video */}
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="videoUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Video URL (YouTube)</FormLabel>
+                          <FormControl>
+                            <div className="space-y-4">
+                              <Input
+                                placeholder="YouTube video URL'si girin..."
+                                {...field}
+                                value={field.value || ''}
+                                className="text-base"
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  const url = e.target.value;
+                                  if (isValidYouTubeUrl(url)) {
+                                    const thumbnail = getYouTubeThumbnail(url);
+                                    if (thumbnail) {
+                                      form.setValue('videoThumbnail', thumbnail);
+                                    }
+                                  }
+                                }}
+                              />
+                              {field.value && isValidYouTubeUrl(field.value) && (
+                                <div className="space-y-3">
+                                  <p className="text-sm text-green-600 font-medium">✓ Geçerli YouTube URL'si</p>
+                                  {getYouTubeThumbnail(field.value) && (
+                                    <div className="flex items-center space-x-3">
+                                      <img 
+                                        src={getYouTubeThumbnail(field.value)!} 
+                                        alt="Video thumbnail" 
+                                        className="w-20 h-15 object-cover rounded"
+                                      />
+                                      <span className="text-sm text-muted-foreground">Otomatik küçük resim</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {field.value && !isValidYouTubeUrl(field.value) && (
+                                <p className="text-sm text-red-600">❌ Geçersiz YouTube URL'si</p>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="videoThumbnail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Video Küçük Resmi</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Video küçük resmi URL'si (otomatik doldurulur)..."
+                              {...field}
+                              value={field.value || ''}
+                              className="text-base"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SEO */}
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">SEO Ayarları</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="metaTitle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Meta Başlık</FormLabel>
+                        <FormControl>
+                          <Input placeholder="SEO başlığı..." {...field} value={field.value || ''} className="text-base" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="metaDescription"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Meta Açıklama</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="SEO açıklaması..."
+                            rows={2}
+                            {...field}
+                            value={field.value || ''}
+                            className="text-base resize-none"
                           />
                         </FormControl>
                         <FormMessage />
@@ -296,382 +624,72 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
 
                   <FormField
                     control={form.control}
-                    name="slug"
+                    name="keywords"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>URL Slug</FormLabel>
+                        <FormLabel>Anahtar Kelimeler</FormLabel>
                         <FormControl>
-                          <Input placeholder="url-slug" {...field} />
+                          <Input placeholder="anahtar, kelime, listesi" {...field} value={field.value || ''} className="text-base" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                </CardContent>
+              </Card>
 
-                  <FormField
-                    control={form.control}
-                    name="categoryId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kategori</FormLabel>
-                        <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Kategori seçin..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id.toString()}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="cityId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Şehir</FormLabel>
-                        <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Şehir seçin..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">Şehir Seçilmedi</SelectItem>
-                            {cities.map((city: any) => (
-                              <SelectItem key={city.id} value={city.id.toString()}>
-                                {city.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="editorId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Editör</FormLabel>
-                        <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Editör seçin..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">Editör Atanmadı</SelectItem>
-                            <SelectItem value="1">Admin User</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sourceId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Haber Kaynağı</FormLabel>
-                        <Select value={field.value?.toString() || "none"} onValueChange={(value) => field.onChange(value === "none" ? undefined : parseInt(value))}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Kaynak seçin..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">Kaynak Seçilmedi</SelectItem>
-                            {sources.map((source: any) => (
-                              <SelectItem key={source.id} value={source.id.toString()}>
-                                {source.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="summary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Özet</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Haber özeti..."
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>İçerik</FormLabel>
-                      <FormControl>
-                        <RichTextEditor
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Haber içeriğini yazın..."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Yayın Durumu</FormLabel>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="draft">Taslak</SelectItem>
-                            <SelectItem value="review">İncelemede</SelectItem>
-                            <SelectItem value="published">Yayında</SelectItem>
-                            <SelectItem value="scheduled">Programlı</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {form.watch('status') === 'scheduled' && (
+              {/* Yayın Ayarları */}
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Yayın Ayarları</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="scheduledAt"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Yayın Tarihi</FormLabel>
-                          <FormControl>
-                            <Input type="datetime-local" {...field} />
-                          </FormControl>
+                          <FormLabel>Yayın Durumu</FormLabel>
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="draft">Taslak</SelectItem>
+                              <SelectItem value="review">İncelemede</SelectItem>
+                              <SelectItem value="published">Yayında</SelectItem>
+                              <SelectItem value="scheduled">Programlı</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  )}
-                </div>
-              </TabsContent>
 
-              <TabsContent value="media" className="space-y-6">
-                <div className="space-y-6">
-                  <Card>
-                    <CardContent className="pt-6">
+                    {form.watch('status') === 'scheduled' && (
                       <FormField
                         control={form.control}
-                        name="featuredImage"
+                        name="scheduledAt"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Kapak Görseli</FormLabel>
+                            <FormLabel>Yayın Tarihi</FormLabel>
                             <FormControl>
-                              <div className="space-y-4">
-                                <Input
-                                  placeholder="Görsel URL'si girin..."
-                                  {...field}
-                                />
-                                <FileUpload
-                                  onFileUpload={(files) => {
-                                    console.log('Files uploaded:', files);
-                                  }}
-                                  accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] }}
-                                  maxFiles={1}
-                                  className="border-dashed"
-                                />
-                                {field.value && (
-                                  <div className="relative">
-                                    <img
-                                      src={field.value}
-                                      alt="Kapak görseli"
-                                      className="max-w-full h-40 object-cover rounded-lg"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="sm"
-                                      className="absolute top-2 right-2"
-                                      onClick={() => field.onChange('')}
-                                    >
-                                      Kaldır
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
+                              <Input type="datetime-local" {...field} className="h-11 text-base" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    </CardContent>
-                  </Card>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                  <Card>
-                    <CardContent className="pt-6 space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="videoUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Video URL (YouTube)</FormLabel>
-                            <FormControl>
-                              <div className="space-y-4">
-                                <Input
-                                  placeholder="YouTube video URL'si girin... (örn: https://www.youtube.com/watch?v=VIDEO_ID)"
-                                  {...field}
-                                  onChange={(e) => {
-                                    field.onChange(e);
-                                    // Auto-generate thumbnail when YouTube URL is entered
-                                    const url = e.target.value;
-                                    if (isValidYouTubeUrl(url)) {
-                                      const thumbnail = getYouTubeThumbnail(url);
-                                      if (thumbnail) {
-                                        form.setValue('videoThumbnail', thumbnail);
-                                      }
-                                    }
-                                  }}
-                                />
-                                {field.value && isValidYouTubeUrl(field.value) && (
-                                  <div className="space-y-2">
-                                    <p className="text-sm text-green-600">✓ Geçerli YouTube URL'si</p>
-                                    <div className="p-3 bg-muted rounded-lg">
-                                      <p className="text-sm font-medium mb-2">Embed Kodu:</p>
-                                      <code className="text-xs bg-background p-2 rounded block overflow-x-auto">
-                                        {generateYouTubeEmbedCode(field.value)}
-                                      </code>
-                                    </div>
-                                    {getYouTubeThumbnail(field.value) && (
-                                      <div className="flex items-center space-x-2">
-                                        <img 
-                                          src={getYouTubeThumbnail(field.value)!} 
-                                          alt="Video thumbnail" 
-                                          className="w-16 h-12 object-cover rounded"
-                                        />
-                                        <span className="text-sm text-muted-foreground">Otomatik küçük resim</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                                {field.value && !isValidYouTubeUrl(field.value) && (
-                                  <p className="text-sm text-red-600">❌ Geçersiz YouTube URL'si</p>
-                                )}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="videoThumbnail"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Video Küçük Resmi</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Video küçük resmi URL'si (otomatik doldurulur)..."
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="seo" className="space-y-6">
-                <Card>
-                  <CardContent className="pt-6 space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="metaTitle"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Meta Başlık</FormLabel>
-                          <FormControl>
-                            <Input placeholder="SEO başlığı..." {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="metaDescription"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Meta Açıklama</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="SEO açıklaması..."
-                              rows={2}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="keywords"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Anahtar Kelimeler</FormLabel>
-                          <FormControl>
-                            <Input placeholder="anahtar, kelime, listesi" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex justify-end space-x-3 pt-6 border-t">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto order-4 sm:order-1">
                 İptal
               </Button>
               <Button
@@ -679,6 +697,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                 variant="outline"
                 onClick={saveAsDraft}
                 disabled={createNewsMutation.isPending}
+                className="w-full sm:w-auto order-3 sm:order-2"
               >
                 Taslak Kaydet
               </Button>
@@ -687,6 +706,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                 variant="outline"
                 onClick={submitForReview}
                 disabled={createNewsMutation.isPending}
+                className="w-full sm:w-auto order-2 sm:order-3"
               >
                 İncelemeye Gönder
               </Button>
@@ -694,6 +714,7 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                 type="button"
                 onClick={publish}
                 disabled={createNewsMutation.isPending}
+                className="w-full sm:w-auto order-1 sm:order-4"
               >
                 {createNewsMutation.isPending ? 'Kaydediliyor...' : 'Yayınla'}
               </Button>
