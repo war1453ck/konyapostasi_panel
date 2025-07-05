@@ -15,8 +15,12 @@ import {
   insertNewspaperPageSchema
 } from "@shared/schema";
 import { z } from "zod";
+import citiesRouter from "./routes/cities";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // API routers
+  app.use("/api/cities", citiesRouter);
+  
   // Stats endpoint
   app.get("/api/stats", async (req, res) => {
     try {

@@ -28,7 +28,10 @@ export async function apiRequest(
     url = urlOrOptions as string;
     options = {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json; charset=utf-8"
+      },
       credentials: "include",
     };
 
@@ -56,6 +59,9 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const res = await fetch(queryKey[0] as string, {
       credentials: "include",
+      headers: {
+        "Accept": "application/json; charset=utf-8"
+      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

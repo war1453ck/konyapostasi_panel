@@ -85,6 +85,26 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
     enabled: isOpen,
   });
 
+  // Fetch editors (users)
+  const { data: editors = [] } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: isOpen,
+    onSuccess: (data) => {
+      console.log('Editörler yüklendi:', data);
+      // Sadece editör rolündeki kullanıcıları filtrele
+      const filteredEditors = data.filter(user => user.role === 'editor' || user.role === 'admin');
+      console.log('Filtrelenmiş editörler:', filteredEditors);
+      return filteredEditors;
+    },
+    onError: (error) => {
+      console.error('Editörler yüklenirken hata:', error);
+    },
+    select: (data) => {
+      // Sadece editör rolündeki kullanıcıları filtrele
+      return data.filter(user => user.role === 'editor' || user.role === 'admin');
+    }
+  });
+
   const createNewsMutation = useMutation({
     mutationFn: async (data: InsertNews) => {
       const url = news ? `/api/news/${news.id}` : '/api/news';
@@ -340,18 +360,25 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Şehir</FormLabel>
-                          <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                          <Select 
+                            onValueChange={(value) => field.onChange(parseInt(value))} 
+                            value={field.value?.toString() || ""}
+                          >
                             <FormControl>
                               <SelectTrigger className="h-11">
                                 <SelectValue placeholder="Şehir seçin" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {(cities as any[]).map((city) => (
-                                <SelectItem key={city.id} value={city.id.toString()}>
-                                  {city.name}
-                                </SelectItem>
-                              ))}
+                              {Array.isArray(cities) && cities.length > 0 ? (
+                                cities.map((city) => (
+                                  <SelectItem key={city.id} value={city.id.toString()}>
+                                    {city.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="loading" disabled>Şehirler yükleniyor...</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -402,6 +429,44 @@ export function NewsModal({ isOpen, onClose, news }: NewsModalProps) {
                               <SelectItem value="draft">Taslak</SelectItem>
                               <SelectItem value="review">İnceleme</SelectItem>
                               <SelectItem value="published">Yayınlandı</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* Editör Seçimi */}
+                  <div className="mt-4 border-t pt-4">
+                    <h4 className="text-sm font-medium mb-2">Editör Ataması</h4>
+                    <p className="text-xs text-muted-foreground mb-3">Haberin düzenlenmesinden sorumlu editörü seçin</p>
+                    
+                    <FormField
+                      control={form.control}
+                      name="editorId"
+                      render={({ field }) => (
+                        <FormItem className="bg-muted/30 p-3 rounded-md border">
+                          <Select 
+                            onValueChange={(value) => field.onChange(parseInt(value))} 
+                            value={field.value?.toString() || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Editör seçin" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {Array.isArray(editors) && editors.length > 0 ? (
+                                editors.map((editor) => (
+                                  <SelectItem key={editor.id} value={editor.id.toString()}>
+                                    {editor.firstName} {editor.lastName} 
+                                    {editor.role === 'admin' ? ' (Admin)' : ''}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="loading" disabled>Editörler yükleniyor...</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />

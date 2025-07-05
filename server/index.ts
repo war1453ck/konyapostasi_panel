@@ -7,6 +7,12 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Türkçe karakter desteği için header ayarları
+app.use((req, res, next) => {
+  res.header("Content-Type", "application/json; charset=utf-8");
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
