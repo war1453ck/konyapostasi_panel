@@ -306,6 +306,9 @@ export const insertDigitalMagazineSchema = createInsertSchema(digitalMagazines).
   createdAt: true,
   updatedAt: true,
   downloadCount: true,
+}).extend({
+  // publishDate alanını string olarak da kabul et
+  publishDate: z.string().or(z.date()),
 });
 
 export const insertAdvertisementSchema = createInsertSchema(advertisements).omit({
