@@ -5,6 +5,11 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const viteLogger = createLogger();
 
@@ -46,7 +51,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        import.meta.dirname,
+        __dirname,
         "..",
         "client",
         "index.html",
@@ -80,18 +85,26 @@ export function serveStatic(app: Express) {
     );
   }
 
-  // Statik dosyaları servis et
+  // Statik dosyaları servis et - assets klasörü için kesin yol belirt
+  app.use('/assets', express.static(path.join(distPath, 'assets')));
+  
+  // Diğer statik dosyalar için
   app.use(express.static(distPath));
 
-  // Eğer dosya bulunamazsa index.html'e yönlendir
-  app.use("*", (_req, res) => {
-    const indexPath = path.resolve(distPath, "index.html");
-    log(`Serving index.html from: ${indexPath}`);
+  // API istekleri dışındaki tüm istekleri index.html'e yönlendir
+  app.get('*', (req, res) => {
+    // API isteklerini yönlendirme
+    if (req.path.startsWith('/api')) {
+      return res.status(404).send('API endpoint not found');
+    }
+    
+    const indexPath = path.join(distPath, 'index.html');
+    log(`Serving index.html for: ${req.path}`);
     
     if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
+      return res.sendFile(indexPath);
     } else {
-      res.status(404).send("Index file not found. Please rebuild the application.");
+      return res.status(404).send("Index file not found. Please rebuild the application.");
     }
   });
 }

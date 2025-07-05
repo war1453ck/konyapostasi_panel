@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { drizzle } from 'drizzle-orm/pg-proxy';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
 // Use a default database URL for development if none is provided

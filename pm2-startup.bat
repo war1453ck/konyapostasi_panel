@@ -1,12 +1,16 @@
 @echo off
-echo Setting up PM2 to start on Windows boot...
+echo Konya Postasi Panel uygulamasini PM2 ile baslatma
+echo ----------------------------------------------
 
-:: PM2 başlangıç komutunu çalıştır
-pm2 startup
+:: Build uygulamayi
+echo Uygulamayi build ediliyor...
+call npm run build
 
-:: Mevcut yapılandırmayı kaydet
-pm2 save
+:: PM2 ile uygulamayi baslat
+echo PM2 ile uygulamayi baslatiliyor...
+call pm2 start dist/index.js --name "konyapostasi-panel" --env production
 
-echo PM2 startup setup completed.
-echo Please follow the instructions above to complete the setup.
-echo After completing the setup, your PM2 processes will start automatically when Windows starts. 
+echo ----------------------------------------------
+echo Uygulama basariyla baslatildi!
+echo Panel adresi: http://127.0.0.1:3002
+pause 
