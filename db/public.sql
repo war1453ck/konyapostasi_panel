@@ -12,7 +12,7 @@
  Target Server Version : 170005 (170005)
  File Encoding         : 65001
 
- Date: 05/07/2025 19:14:24
+ Date: 05/07/2025 20:02:58
 */
 
 
@@ -216,6 +216,7 @@ CREATE TABLE "public"."articles" (
 -- ----------------------------
 -- Records of articles
 -- ----------------------------
+INSERT INTO "public"."articles" VALUES (1, 'dgfgdfgfdgd', 'dgfgdfgfdgd', 'dfgdfgdf', 'dfgdfgdfgfd', '', 'draft', 1, 1, 0, NULL, NULL, '', '', '', '2025-07-05 19:38:42.870861', '2025-07-05 19:38:42.870861');
 
 -- ----------------------------
 -- Table structure for categories
@@ -256,6 +257,87 @@ CREATE TABLE "public"."cities" (
 -- ----------------------------
 -- Records of cities
 -- ----------------------------
+INSERT INTO "public"."cities" VALUES (1, 'Adana', 'adana', '01', '2025-07-05 19:44:17.332179');
+INSERT INTO "public"."cities" VALUES (2, 'Adıyaman', 'adiyaman', '02', '2025-07-05 19:44:17.34585');
+INSERT INTO "public"."cities" VALUES (3, 'Afyonkarahisar', 'afyonkarahisar', '03', '2025-07-05 19:44:17.347438');
+INSERT INTO "public"."cities" VALUES (4, 'Ağrı', 'agri', '04', '2025-07-05 19:44:17.348166');
+INSERT INTO "public"."cities" VALUES (5, 'Amasya', 'amasya', '05', '2025-07-05 19:44:17.348893');
+INSERT INTO "public"."cities" VALUES (6, 'Ankara', 'ankara', '06', '2025-07-05 19:44:17.349624');
+INSERT INTO "public"."cities" VALUES (7, 'Antalya', 'antalya', '07', '2025-07-05 19:44:17.350505');
+INSERT INTO "public"."cities" VALUES (8, 'Artvin', 'artvin', '08', '2025-07-05 19:44:17.351547');
+INSERT INTO "public"."cities" VALUES (9, 'Aydın', 'aydin', '09', '2025-07-05 19:44:17.352804');
+INSERT INTO "public"."cities" VALUES (10, 'Balıkesir', 'balikesir', '10', '2025-07-05 19:44:17.353865');
+INSERT INTO "public"."cities" VALUES (11, 'Bilecik', 'bilecik', '11', '2025-07-05 19:44:17.354857');
+INSERT INTO "public"."cities" VALUES (12, 'Bingöl', 'bingol', '12', '2025-07-05 19:44:17.355674');
+INSERT INTO "public"."cities" VALUES (13, 'Bitlis', 'bitlis', '13', '2025-07-05 19:44:17.356545');
+INSERT INTO "public"."cities" VALUES (14, 'Bolu', 'bolu', '14', '2025-07-05 19:44:17.357335');
+INSERT INTO "public"."cities" VALUES (15, 'Burdur', 'burdur', '15', '2025-07-05 19:44:17.35799');
+INSERT INTO "public"."cities" VALUES (16, 'Bursa', 'bursa', '16', '2025-07-05 19:44:17.358997');
+INSERT INTO "public"."cities" VALUES (17, 'Çanakkale', 'canakkale', '17', '2025-07-05 19:44:17.359547');
+INSERT INTO "public"."cities" VALUES (18, 'Çankırı', 'cankiri', '18', '2025-07-05 19:44:17.360213');
+INSERT INTO "public"."cities" VALUES (19, 'Çorum', 'corum', '19', '2025-07-05 19:44:17.360819');
+INSERT INTO "public"."cities" VALUES (20, 'Denizli', 'denizli', '20', '2025-07-05 19:44:17.361271');
+INSERT INTO "public"."cities" VALUES (21, 'Diyarbakır', 'diyarbakir', '21', '2025-07-05 19:44:17.361854');
+INSERT INTO "public"."cities" VALUES (22, 'Edirne', 'edirne', '22', '2025-07-05 19:44:17.362461');
+INSERT INTO "public"."cities" VALUES (23, 'Elazığ', 'elazig', '23', '2025-07-05 19:44:17.362984');
+INSERT INTO "public"."cities" VALUES (24, 'Erzincan', 'erzincan', '24', '2025-07-05 19:44:17.363464');
+INSERT INTO "public"."cities" VALUES (25, 'Erzurum', 'erzurum', '25', '2025-07-05 19:44:17.36396');
+INSERT INTO "public"."cities" VALUES (26, 'Eskişehir', 'eskisehir', '26', '2025-07-05 19:44:17.364457');
+INSERT INTO "public"."cities" VALUES (27, 'Gaziantep', 'gaziantep', '27', '2025-07-05 19:44:17.365056');
+INSERT INTO "public"."cities" VALUES (28, 'Giresun', 'giresun', '28', '2025-07-05 19:44:17.365485');
+INSERT INTO "public"."cities" VALUES (29, 'Gümüşhane', 'gumushane', '29', '2025-07-05 19:44:17.365908');
+INSERT INTO "public"."cities" VALUES (30, 'Hakkari', 'hakkari', '30', '2025-07-05 19:44:17.366304');
+INSERT INTO "public"."cities" VALUES (31, 'Hatay', 'hatay', '31', '2025-07-05 19:44:17.366701');
+INSERT INTO "public"."cities" VALUES (32, 'Isparta', 'isparta', '32', '2025-07-05 19:44:17.367091');
+INSERT INTO "public"."cities" VALUES (33, 'Mersin', 'mersin', '33', '2025-07-05 19:44:17.367905');
+INSERT INTO "public"."cities" VALUES (34, 'İstanbul', 'istanbul', '34', '2025-07-05 19:44:17.368677');
+INSERT INTO "public"."cities" VALUES (35, 'İzmir', 'izmir', '35', '2025-07-05 19:44:17.369176');
+INSERT INTO "public"."cities" VALUES (36, 'Kars', 'kars', '36', '2025-07-05 19:44:17.369596');
+INSERT INTO "public"."cities" VALUES (37, 'Kastamonu', 'kastamonu', '37', '2025-07-05 19:44:17.369993');
+INSERT INTO "public"."cities" VALUES (38, 'Kayseri', 'kayseri', '38', '2025-07-05 19:44:17.370382');
+INSERT INTO "public"."cities" VALUES (39, 'Kırklareli', 'kirklareli', '39', '2025-07-05 19:44:17.370846');
+INSERT INTO "public"."cities" VALUES (40, 'Kırşehir', 'kirsehir', '40', '2025-07-05 19:44:17.371383');
+INSERT INTO "public"."cities" VALUES (41, 'Kocaeli', 'kocaeli', '41', '2025-07-05 19:44:17.371788');
+INSERT INTO "public"."cities" VALUES (42, 'Konya', 'konya', '42', '2025-07-05 19:44:17.372239');
+INSERT INTO "public"."cities" VALUES (43, 'Kütahya', 'kutahya', '43', '2025-07-05 19:44:17.372668');
+INSERT INTO "public"."cities" VALUES (44, 'Malatya', 'malatya', '44', '2025-07-05 19:44:17.373072');
+INSERT INTO "public"."cities" VALUES (45, 'Manisa', 'manisa', '45', '2025-07-05 19:44:17.37348');
+INSERT INTO "public"."cities" VALUES (46, 'Kahramanmaraş', 'kahramanmaras', '46', '2025-07-05 19:44:17.373902');
+INSERT INTO "public"."cities" VALUES (47, 'Mardin', 'mardin', '47', '2025-07-05 19:44:17.374323');
+INSERT INTO "public"."cities" VALUES (48, 'Muğla', 'mugla', '48', '2025-07-05 19:44:17.374774');
+INSERT INTO "public"."cities" VALUES (49, 'Muş', 'mus', '49', '2025-07-05 19:44:17.375193');
+INSERT INTO "public"."cities" VALUES (50, 'Nevşehir', 'nevsehir', '50', '2025-07-05 19:44:17.375787');
+INSERT INTO "public"."cities" VALUES (51, 'Niğde', 'nigde', '51', '2025-07-05 19:44:17.376237');
+INSERT INTO "public"."cities" VALUES (52, 'Ordu', 'ordu', '52', '2025-07-05 19:44:17.376648');
+INSERT INTO "public"."cities" VALUES (53, 'Rize', 'rize', '53', '2025-07-05 19:44:17.377047');
+INSERT INTO "public"."cities" VALUES (54, 'Sakarya', 'sakarya', '54', '2025-07-05 19:44:17.377441');
+INSERT INTO "public"."cities" VALUES (55, 'Samsun', 'samsun', '55', '2025-07-05 19:44:17.377853');
+INSERT INTO "public"."cities" VALUES (56, 'Siirt', 'siirt', '56', '2025-07-05 19:44:17.378253');
+INSERT INTO "public"."cities" VALUES (57, 'Sinop', 'sinop', '57', '2025-07-05 19:44:17.37866');
+INSERT INTO "public"."cities" VALUES (58, 'Sivas', 'sivas', '58', '2025-07-05 19:44:17.379053');
+INSERT INTO "public"."cities" VALUES (59, 'Tekirdağ', 'tekirdag', '59', '2025-07-05 19:44:17.379454');
+INSERT INTO "public"."cities" VALUES (60, 'Tokat', 'tokat', '60', '2025-07-05 19:44:17.379865');
+INSERT INTO "public"."cities" VALUES (61, 'Trabzon', 'trabzon', '61', '2025-07-05 19:44:17.380271');
+INSERT INTO "public"."cities" VALUES (62, 'Tunceli', 'tunceli', '62', '2025-07-05 19:44:17.38068');
+INSERT INTO "public"."cities" VALUES (63, 'Şanlıurfa', 'sanliurfa', '63', '2025-07-05 19:44:17.381079');
+INSERT INTO "public"."cities" VALUES (64, 'Uşak', 'usak', '64', '2025-07-05 19:44:17.381482');
+INSERT INTO "public"."cities" VALUES (65, 'Van', 'van', '65', '2025-07-05 19:44:17.381905');
+INSERT INTO "public"."cities" VALUES (66, 'Yozgat', 'yozgat', '66', '2025-07-05 19:44:17.38243');
+INSERT INTO "public"."cities" VALUES (67, 'Zonguldak', 'zonguldak', '67', '2025-07-05 19:44:17.382841');
+INSERT INTO "public"."cities" VALUES (68, 'Aksaray', 'aksaray', '68', '2025-07-05 19:44:17.383256');
+INSERT INTO "public"."cities" VALUES (69, 'Bayburt', 'bayburt', '69', '2025-07-05 19:44:17.383667');
+INSERT INTO "public"."cities" VALUES (70, 'Karaman', 'karaman', '70', '2025-07-05 19:44:17.384452');
+INSERT INTO "public"."cities" VALUES (71, 'Kırıkkale', 'kirikkale', '71', '2025-07-05 19:44:17.385032');
+INSERT INTO "public"."cities" VALUES (72, 'Batman', 'batman', '72', '2025-07-05 19:44:17.38554');
+INSERT INTO "public"."cities" VALUES (73, 'Şırnak', 'sirnak', '73', '2025-07-05 19:44:17.386058');
+INSERT INTO "public"."cities" VALUES (74, 'Bartın', 'bartin', '74', '2025-07-05 19:44:17.386488');
+INSERT INTO "public"."cities" VALUES (75, 'Ardahan', 'ardahan', '75', '2025-07-05 19:44:17.386902');
+INSERT INTO "public"."cities" VALUES (76, 'Iğdır', 'igdir', '76', '2025-07-05 19:44:17.387305');
+INSERT INTO "public"."cities" VALUES (77, 'Yalova', 'yalova', '77', '2025-07-05 19:44:17.387871');
+INSERT INTO "public"."cities" VALUES (78, 'Karabük', 'karabuk', '78', '2025-07-05 19:44:17.388278');
+INSERT INTO "public"."cities" VALUES (79, 'Kilis', 'kilis', '79', '2025-07-05 19:44:17.388682');
+INSERT INTO "public"."cities" VALUES (80, 'Osmaniye', 'osmaniye', '80', '2025-07-05 19:44:17.389078');
+INSERT INTO "public"."cities" VALUES (81, 'Düzce', 'duzce', '81', '2025-07-05 19:44:17.389498');
 
 -- ----------------------------
 -- Table structure for classified_ads
@@ -340,6 +422,7 @@ CREATE TABLE "public"."digital_magazines" (
 -- ----------------------------
 -- Records of digital_magazines
 -- ----------------------------
+INSERT INTO "public"."digital_magazines" VALUES (1, 'fgdgdfgdfgdfsadasa', 1, 1, '2025-07-05 00:00:00', '/uploads/newspaper-1751732331038-510044750.jpeg', '/uploads/newspaper-1751732334671-326298230.pdf', '', 9, 'f', 't', '{}', 1, 'tr', 0.00, 0, '2025-07-05 19:27:53.70462', '2025-07-05 16:39:35.421');
 
 -- ----------------------------
 -- Table structure for magazine_categories
@@ -423,7 +506,7 @@ CREATE TABLE "public"."news" (
 -- Records of news
 -- ----------------------------
 INSERT INTO "public"."news" VALUES (1, 'sdfdsfsdf', 'sdfdsfsdf', 'sdfdsfsdf', 'sdfsdfsdf', NULL, NULL, NULL, NULL, NULL, 'published', 1, NULL, 2, NULL, 0, '2025-07-05 15:26:23.44', NULL, NULL, NULL, NULL, '2025-07-05 18:26:23.485572', '2025-07-05 18:26:23.485572');
-INSERT INTO "public"."news" VALUES (2, 'G�ncellenmis Test Haber', 'test-haber', 'G�ncellenmis �zet', '<p>Test haber i�erigi</p>', NULL, NULL, NULL, NULL, NULL, 'published', 1, NULL, 3, NULL, 0, NULL, NULL, NULL, NULL, NULL, '2025-07-05 18:38:56.320484', '2025-07-05 15:39:11.597');
+INSERT INTO "public"."news" VALUES (2, 'göçe', 'goce', 'çünşıl', '<p>Test haber i�erigi</p>', NULL, NULL, NULL, NULL, 1, 'review', 1, NULL, 2, 8, 0, '2025-07-05 16:50:19.166', NULL, NULL, NULL, NULL, '2025-07-05 18:38:56.320484', '2025-07-05 16:54:34.673');
 
 -- ----------------------------
 -- Table structure for newspaper_pages
@@ -494,6 +577,13 @@ CREATE TABLE "public"."users" (
 -- Records of users
 -- ----------------------------
 INSERT INTO "public"."users" VALUES (1, 'testuser', 'testuser@example.com', 'password123', 'Test', 'User', 'writer', 't', '2025-07-05 18:39:55.179626');
+INSERT INTO "public"."users" VALUES (2, 'admin', 'admin@konyapostasi.com', 'admin123', 'Admin', 'User', 'admin', 't', '2025-07-05 19:56:59.169016');
+INSERT INTO "public"."users" VALUES (3, 'editor1', 'editor1@konyapostasi.com', 'editor123', 'Ahmet', 'Yılmaz', 'editor', 't', '2025-07-05 19:56:59.182528');
+INSERT INTO "public"."users" VALUES (4, 'editor2', 'editor2@konyapostasi.com', 'editor123', 'Mehmet', 'Kaya', 'editor', 't', '2025-07-05 19:56:59.183796');
+INSERT INTO "public"."users" VALUES (5, 'writer1', 'writer1@konyapostasi.com', 'writer123', 'Ayşe', 'Demir', 'writer', 't', '2025-07-05 19:56:59.184985');
+INSERT INTO "public"."users" VALUES (6, 'writer2', 'writer2@konyapostasi.com', 'writer123', 'Fatma', 'Çelik', 'writer', 't', '2025-07-05 19:56:59.186649');
+INSERT INTO "public"."users" VALUES (7, 'editor3', 'editor3@konyapostasi.com', 'editor123', 'Ali', 'Öztürk', 'editor', 't', '2025-07-05 19:58:38.837267');
+INSERT INTO "public"."users" VALUES (8, 'editor4', 'editor4@konyapostasi.com', 'editor123', 'Zeynep', 'Şahin', 'editor', 't', '2025-07-05 19:58:38.852032');
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -507,7 +597,7 @@ SELECT setval('"public"."advertisements_id_seq"', 3, true);
 -- ----------------------------
 ALTER SEQUENCE "public"."articles_id_seq"
 OWNED BY "public"."articles"."id";
-SELECT setval('"public"."articles_id_seq"', 1, false);
+SELECT setval('"public"."articles_id_seq"', 1, true);
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -521,7 +611,7 @@ SELECT setval('"public"."categories_id_seq"', 3, true);
 -- ----------------------------
 ALTER SEQUENCE "public"."cities_id_seq"
 OWNED BY "public"."cities"."id";
-SELECT setval('"public"."cities_id_seq"', 1, false);
+SELECT setval('"public"."cities_id_seq"', 81, true);
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -542,7 +632,7 @@ SELECT setval('"public"."comments_id_seq"', 1, true);
 -- ----------------------------
 ALTER SEQUENCE "public"."digital_magazines_id_seq"
 OWNED BY "public"."digital_magazines"."id";
-SELECT setval('"public"."digital_magazines_id_seq"', 1, false);
+SELECT setval('"public"."digital_magazines_id_seq"', 1, true);
 
 -- ----------------------------
 -- Alter sequences owned by
@@ -584,7 +674,7 @@ SELECT setval('"public"."sources_id_seq"', 1, true);
 -- ----------------------------
 ALTER SEQUENCE "public"."users_id_seq"
 OWNED BY "public"."users"."id";
-SELECT setval('"public"."users_id_seq"', 1, true);
+SELECT setval('"public"."users_id_seq"', 8, true);
 
 -- ----------------------------
 -- Primary Key structure for table advertisements
