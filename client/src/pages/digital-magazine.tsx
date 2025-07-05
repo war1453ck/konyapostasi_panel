@@ -56,6 +56,9 @@ export default function DigitalMagazinePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
+  // Önizleme modalı için state değişkenleri
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewMagazine, setPreviewMagazine] = useState<DigitalMagazine | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -230,7 +233,7 @@ export default function DigitalMagazinePage() {
       coverImageUrl: magazine.coverImageUrl,
       pdfUrl: magazine.pdfUrl || '',
       description: magazine.description || '',
-      categoryId: magazine.categoryId || undefined,
+      categoryId: magazine.categoryId ? Number(magazine.categoryId) : undefined,
       isPublished: magazine.isPublished,
       isFeatured: magazine.isFeatured,
       tags: magazine.tags?.join(', ') || '',
@@ -310,6 +313,12 @@ export default function DigitalMagazinePage() {
     } finally {
       setUploadingPdf(false);
     }
+  };
+
+  // Dergi önizleme fonksiyonu
+  const handlePreviewMagazine = (magazine: DigitalMagazine) => {
+    setPreviewMagazine(magazine);
+    setIsPreviewModalOpen(true);
   };
 
   if (isLoading) {
@@ -515,7 +524,7 @@ export default function DigitalMagazinePage() {
                         </a>
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" onClick={() => window.open(magazine.coverImageUrl, '_blank')}>
+                    <Button variant="outline" size="sm" onClick={() => handlePreviewMagazine(magazine)}>
                       <LucideIcons.Eye className="w-3 h-3 sm:mr-1" />
                       <span className="hidden sm:inline">Görüntüle</span>
                     </Button>
@@ -592,23 +601,29 @@ export default function DigitalMagazinePage() {
                           </p>
                         )}
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <LucideIcons.MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditMagazine(magazine)}>
-                            <LucideIcons.Edit className="w-4 h-4 mr-2" />
-                            Düzenle
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteMagazine(magazine.id)}>
-                            <LucideIcons.Trash className="w-4 h-4 mr-2" />
-                            Sil
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex flex-col space-y-2">
+                        <Button variant="outline" size="sm" onClick={() => handlePreviewMagazine(magazine)}>
+                          <LucideIcons.Eye className="w-4 h-4 mr-1" />
+                          Görüntüle
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <LucideIcons.MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditMagazine(magazine)}>
+                              <LucideIcons.Edit className="w-4 h-4 mr-2" />
+                              Düzenle
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteMagazine(magazine.id)}>
+                              <LucideIcons.Trash className="w-4 h-4 mr-2" />
+                              Sil
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -650,7 +665,10 @@ export default function DigitalMagazinePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Kategori</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(Number(value))} 
+                        value={field.value ? String(field.value) : undefined}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Kategori seçin" />
@@ -658,7 +676,7 @@ export default function DigitalMagazinePage() {
                         </FormControl>
                         <SelectContent>
                           {categories.map((category: any) => (
-                            <SelectItem key={category.id} value={category.id}>
+                            <SelectItem key={category.id} value={String(category.id)}>
                               {category.name}
                             </SelectItem>
                           ))}
@@ -973,6 +991,74 @@ export default function DigitalMagazinePage() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dergi Önizleme Modal */}
+      <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto mx-4">
+          <DialogHeader>
+            <DialogTitle>{previewMagazine?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="aspect-square relative rounded-lg overflow-hidden">
+              <img
+                src={previewMagazine?.coverImageUrl}
+                alt={previewMagazine?.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-sm px-2 py-1 rounded-md">
+                Sayı {previewMagazine?.issueNumber}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">{previewMagazine?.title}</h3>
+              <p className="text-sm text-muted-foreground">
+                Yayın Tarihi: {formatDate(previewMagazine?.publishDate || '')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Kategori: {previewMagazine?.category || 'Belirtilmemiş'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Dil: {previewMagazine?.language || 'Türkçe'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Fiyat: {previewMagazine?.price || '0.00'} TL
+              </p>
+              <div className="flex items-center space-x-2">
+                {previewMagazine?.pdfUrl && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={previewMagazine.pdfUrl} target="_blank" rel="noopener noreferrer">
+                      <LucideIcons.Download className="w-4 h-4 mr-1" />
+                      PDF İndir
+                    </a>
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => window.open(previewMagazine?.coverImageUrl, '_blank')}>
+                  <LucideIcons.Eye className="w-4 h-4 mr-1" />
+                  Kapak Görüntüle
+                </Button>
+              </div>
+              {previewMagazine?.description && (
+                <div className="bg-muted p-3 rounded-lg">
+                  <h4 className="font-semibold mb-2">Açıklama</h4>
+                  <p className="text-sm text-muted-foreground">{previewMagazine.description}</p>
+                </div>
+              )}
+              {previewMagazine?.tags && previewMagazine.tags.length > 0 && (
+                <div className="bg-muted p-3 rounded-lg">
+                  <h4 className="font-semibold mb-2">Etiketler</h4>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {previewMagazine.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

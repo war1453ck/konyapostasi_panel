@@ -46,6 +46,11 @@ router.get('/:id', async (req, res) => {
 // Create new digital magazine
 router.post('/', async (req, res) => {
   try {
+    // Eğer publishDate bir string ise, Date nesnesine dönüştür
+    if (req.body.publishDate && typeof req.body.publishDate === 'string') {
+      req.body.publishDate = new Date(req.body.publishDate);
+    }
+    
     const validatedData = insertDigitalMagazineSchema.parse(req.body);
     const magazine = await storage.createDigitalMagazine(validatedData);
     res.status(201).json(magazine);
@@ -67,6 +72,11 @@ router.patch('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid magazine ID' });
+    }
+    
+    // Eğer publishDate bir string ise, Date nesnesine dönüştür
+    if (req.body.publishDate && typeof req.body.publishDate === 'string') {
+      req.body.publishDate = new Date(req.body.publishDate);
     }
     
     const validatedData = insertDigitalMagazineSchema.partial().parse(req.body);
