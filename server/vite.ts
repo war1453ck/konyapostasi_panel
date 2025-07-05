@@ -13,15 +13,10 @@ const __dirname = dirname(__filename);
 
 const viteLogger = createLogger();
 
-export function log(message: string, source = "express") {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
-
-  console.log(`${formattedTime} [${source}] ${message}`);
+export function log(...args: any[]) {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString();
+  console.log(`${timeString} [express]`, ...args);
 }
 
 export async function setupVite(app: Express, server: Server) {
@@ -126,7 +121,9 @@ export function serveStatic(app: Express) {
       const indexContent = fs.readFileSync(indexPath, 'utf-8');
       log(`index.html content length: ${indexContent.length} bytes`);
       
-      return res.sendFile(indexPath);
+      // index.html'i doğrudan gönder
+      res.setHeader('Content-Type', 'text/html');
+      return res.send(indexContent);
     } else {
       log(`ERROR: index.html not found at ${indexPath}`);
       return res.status(404).send("Index file not found. Please rebuild the application.");

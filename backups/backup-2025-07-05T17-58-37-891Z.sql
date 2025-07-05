@@ -720,6 +720,7 @@ COPY public.articles (id, title, slug, summary, content, featured_image, status,
 COPY public.categories (id, name, slug, description, parent_id, sort_order, is_active, created_at, updated_at) FROM stdin;
 1	dsfsfsd	dsfsfsd		\N	0	t	2025-07-05 18:26:02.152178	2025-07-05 18:26:02.152178
 2	dfggdfgfdgdf	dfggdfgfdgdf		\N	0	t	2025-07-05 18:26:08.087735	2025-07-05 18:26:08.087735
+4	sadasdas	sadasdas		\N	0	t	2025-07-05 20:57:18.039453	2025-07-05 20:57:18.039453
 \.
 
 
@@ -864,7 +865,6 @@ COPY public.media (id, filename, original_name, mime_type, size, path, uploaded_
 --
 
 COPY public.news (id, title, slug, summary, content, featured_image, video_url, video_thumbnail, source, source_id, status, author_id, editor_id, category_id, city_id, view_count, published_at, scheduled_at, meta_title, meta_description, keywords, created_at, updated_at) FROM stdin;
-1	sdfdsfsdf	sdfdsfsdf	sdfdsfsdf	sdfsdfsdf	\N	\N	\N	\N	\N	published	1	\N	2	\N	0	2025-07-05 15:26:23.44	\N	\N	\N	\N	2025-07-05 18:26:23.485572	2025-07-05 18:26:23.485572
 2	göçe	goce	çünşıl	<p>Test haber i�erigi</p>	\N	\N	\N	\N	1	review	1	\N	2	8	0	2025-07-05 16:50:19.166	\N	\N	\N	\N	2025-07-05 18:38:56.320484	2025-07-05 16:54:34.673
 \.
 
@@ -920,7 +920,7 @@ SELECT pg_catalog.setval('public.articles_id_seq', 1, true);
 -- Name: categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.categories_id_seq', 3, true);
+SELECT pg_catalog.setval('public.categories_id_seq', 4, true);
 
 
 --
