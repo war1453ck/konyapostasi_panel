@@ -16,6 +16,11 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, count, and, or, desc, sql } from "drizzle-orm";
+import { Pool } from "pg";
+import { pool as dbPool } from "./db";
+
+// Mevcut pool'u kullan
+const pool = dbPool;
 
 export interface IStorage {
   // Users
@@ -1339,47 +1344,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllCategories(): Promise<CategoryWithChildren[]> {
-    const allCategories = await db.select().from(categories);
-    const newsCountQuery = await db
-      .select({
-        categoryId: news.categoryId,
-        count: count()
-      })
-      .from(news)
-      .groupBy(news.categoryId);
-
-    const categoryMap = new Map<number, CategoryWithChildren>();
-    const newsCountMap = new Map<number, number>();
-
-    // Build news count map
-    newsCountQuery.forEach(({ categoryId, count: newsCount }) => {
-      newsCountMap.set(categoryId, newsCount);
-    });
-
-    // Build categories with children structure
-    allCategories.forEach(category => {
-      categoryMap.set(category.id, {
-        ...category,
-        children: [],
-        newsCount: newsCountMap.get(category.id) || 0
+    try {
+      console.log("Veritabanı sorgusu başlatılıyor...");
+      
+      // Doğrudan SQL sorgusu kullan
+      const result = await pool.query(`
+        SELECT c.*, 
+          (SELECT COUNT(*) FROM news WHERE category_id = c.id) as news_count
+        FROM categories c
+        ORDER BY c.sort_order
+      `);
+      
+      console.log("Sorgu sonucu:", result.rows);
+      
+      // Kategorileri düzenle
+      const categoryMap = new Map<number, CategoryWithChildren>();
+      
+      // Tüm kategorileri haritaya ekle
+      result.rows.forEach((row: any) => {
+        categoryMap.set(row.id, {
+          ...row,
+          children: [],
+          newsCount: parseInt(row.news_count) || 0
+        });
       });
-    });
-
-    // Organize parent-child relationships
-    const rootCategories: CategoryWithChildren[] = [];
-    allCategories.forEach(category => {
-      const categoryWithChildren = categoryMap.get(category.id)!;
-      if (category.parentId) {
-        const parent = categoryMap.get(category.parentId);
-        if (parent) {
-          parent.children!.push(categoryWithChildren);
+      
+      // Ebeveyn-çocuk ilişkilerini düzenle
+      const rootCategories: CategoryWithChildren[] = [];
+      result.rows.forEach((row: any) => {
+        const categoryWithChildren = categoryMap.get(row.id)!;
+        if (row.parent_id) {
+          const parent = categoryMap.get(row.parent_id);
+          if (parent) {
+            parent.children!.push(categoryWithChildren);
+          } else {
+            rootCategories.push(categoryWithChildren);
+          }
+        } else {
+          rootCategories.push(categoryWithChildren);
         }
-      } else {
-        rootCategories.push(categoryWithChildren);
-      }
-    });
-
-    return rootCategories;
+      });
+      
+      console.log("Kök kategoriler:", rootCategories);
+      return rootCategories;
+    } catch (error) {
+      console.error("Kategori sorgusunda hata:", error);
+      throw error;
+    }
   }
 
   async deleteCategory(id: number): Promise<boolean> {

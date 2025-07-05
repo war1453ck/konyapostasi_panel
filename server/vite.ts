@@ -68,18 +68,30 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // Doğru yolu belirle - dist/public klasörü
+  const distPath = path.resolve(process.cwd(), "dist", "public");
+
+  log(`Serving static files from: ${distPath}`);
 
   if (!fs.existsSync(distPath)) {
+    log(`Build directory not found: ${distPath}`);
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`,
     );
   }
 
+  // Statik dosyaları servis et
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
+  // Eğer dosya bulunamazsa index.html'e yönlendir
   app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    const indexPath = path.resolve(distPath, "index.html");
+    log(`Serving index.html from: ${indexPath}`);
+    
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send("Index file not found. Please rebuild the application.");
+    }
   });
 }
