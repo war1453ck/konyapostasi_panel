@@ -73,10 +73,7 @@ export default function MagazineCategoriesPage() {
 
   const createCategoryMutation = useMutation({
     mutationFn: (data: InsertMagazineCategory) =>
-      apiRequest('/api/magazine-categories', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('POST', '/api/magazine-categories', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/magazine-categories'] });
       setIsModalOpen(false);
@@ -97,10 +94,7 @@ export default function MagazineCategoriesPage() {
 
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, ...data }: Partial<InsertMagazineCategory> & { id: number }) =>
-      apiRequest(`/api/magazine-categories/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('PATCH', `/api/magazine-categories/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/magazine-categories'] });
       setIsModalOpen(false);
@@ -121,21 +115,8 @@ export default function MagazineCategoriesPage() {
   });
 
   const deleteCategoryMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/magazine-categories/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Silme işlemi başarısız' }));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      return response;
-    },
+    mutationFn: (id: number) => 
+      apiRequest('DELETE', `/api/magazine-categories/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/magazine-categories'] });
       toast({
@@ -154,7 +135,7 @@ export default function MagazineCategoriesPage() {
   });
 
   const generateSlug = (name: string) => {
-    return name
+    let baseSlug = name
       .toLowerCase()
       .replace(/ğ/g, 'g')
       .replace(/ü/g, 'u')
@@ -165,6 +146,25 @@ export default function MagazineCategoriesPage() {
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
+    
+    // Mevcut slugları kontrol et
+    const existingSlugs = categories.map(cat => cat.slug);
+    
+    // Eğer slug zaten varsa, sonuna sayı ekle
+    if (existingSlugs.includes(baseSlug)) {
+      let counter = 1;
+      let newSlug = `${baseSlug}-${counter}`;
+      
+      // Benzersiz bir slug bulana kadar sayıyı artır
+      while (existingSlugs.includes(newSlug)) {
+        counter++;
+        newSlug = `${baseSlug}-${counter}`;
+      }
+      
+      return newSlug;
+    }
+    
+    return baseSlug;
   };
 
   const onSubmit = (data: MagazineCategoryFormData) => {

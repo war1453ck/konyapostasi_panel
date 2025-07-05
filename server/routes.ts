@@ -685,23 +685,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/magazine-categories", async (req, res) => {
     try {
-      const category = await storage.createMagazineCategory(req.body);
+      const validatedData = insertMagazineCategorySchema.parse(req.body);
+      const category = await storage.createMagazineCategory(validatedData);
       res.status(201).json(category);
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      console.error("Error creating magazine category:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Validation error", errors: error.errors });
+      } else {
+        res.status(500).json({ message: error.message });
+      }
     }
   });
 
   app.patch("/api/magazine-categories/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const category = await storage.updateMagazineCategory(id, req.body);
+      const validatedData = insertMagazineCategorySchema.partial().parse(req.body);
+      const category = await storage.updateMagazineCategory(id, validatedData);
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
       }
       res.json(category);
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      console.error("Error updating magazine category:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Validation error", errors: error.errors });
+      } else {
+        res.status(500).json({ message: error.message });
+      }
     }
   });
 

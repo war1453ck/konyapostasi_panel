@@ -8,22 +8,42 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
-  url: string,
+  urlOrMethod: string,
+  urlOrOptions?: string | RequestInit,
   data?: any
 ): Promise<any> {
-  const options: RequestInit = {
-    method,
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  };
+  let url: string;
+  let options: RequestInit;
 
-  if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-    options.body = JSON.stringify(data);
+  // Handle both calling patterns:
+  // 1. apiRequest(url, options)
+  // 2. apiRequest(method, url, data)
+  if (typeof urlOrOptions === 'object') {
+    // Pattern 1: apiRequest(url, options)
+    url = urlOrMethod;
+    options = urlOrOptions;
+  } else {
+    // Pattern 2: apiRequest(method, url, data)
+    const method = urlOrMethod;
+    url = urlOrOptions as string;
+    options = {
+      method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    };
+
+    if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+      options.body = JSON.stringify(data);
+    }
   }
 
   const res = await fetch(url, options);
   await throwIfResNotOk(res);
+  
+  // Return null for DELETE requests that return no content
+  if (res.status === 204) {
+    return null;
+  }
   
   return await res.json();
 }

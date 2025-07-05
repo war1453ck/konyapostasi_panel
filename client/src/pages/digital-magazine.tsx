@@ -89,10 +89,7 @@ export default function DigitalMagazinePage() {
 
   const createMagazineMutation = useMutation({
     mutationFn: (data: InsertDigitalMagazine) =>
-      apiRequest('/api/digital-magazines', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('POST', '/api/digital-magazines', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/digital-magazines'] });
       setIsModalOpen(false);
@@ -103,6 +100,7 @@ export default function DigitalMagazinePage() {
       });
     },
     onError: (error: any) => {
+      console.error('Dergi oluşturma hatası:', error);
       toast({
         title: 'Hata',
         description: error.message || 'Dergi oluşturulurken bir hata oluştu',
@@ -113,10 +111,7 @@ export default function DigitalMagazinePage() {
 
   const updateMagazineMutation = useMutation({
     mutationFn: ({ id, ...data }: Partial<InsertDigitalMagazine> & { id: number }) =>
-      apiRequest(`/api/digital-magazines/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('PATCH', `/api/digital-magazines/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/digital-magazines'] });
       setIsModalOpen(false);
@@ -128,6 +123,7 @@ export default function DigitalMagazinePage() {
       });
     },
     onError: (error: any) => {
+      console.error('Dergi güncelleme hatası:', error);
       toast({
         title: 'Hata',
         description: error.message || 'Dergi güncellenirken bir hata oluştu',
@@ -138,9 +134,7 @@ export default function DigitalMagazinePage() {
 
   const deleteMagazineMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/digital-magazines/${id}`, {
-        method: 'DELETE',
-      }),
+      apiRequest('DELETE', `/api/digital-magazines/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/digital-magazines'] });
       toast({
@@ -149,6 +143,7 @@ export default function DigitalMagazinePage() {
       });
     },
     onError: (error: any) => {
+      console.error('Dergi silme hatası:', error);
       toast({
         title: 'Hata',
         description: error.message || 'Dergi silinirken bir hata oluştu',
@@ -175,16 +170,47 @@ export default function DigitalMagazinePage() {
   };
 
   const onSubmit = (data: DigitalMagazineFormData) => {
-    const formData = {
-      ...data,
-      tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
-      volume: data.volume || undefined,
-    };
+    // Tüm zorunlu alanların dolu olduğundan emin olalım
+    if (!data.title || !data.issueNumber || !data.publishDate || !data.coverImageUrl) {
+      toast({
+        title: 'Hata',
+        description: 'Lütfen tüm zorunlu alanları doldurun: Başlık, Sayı Numarası, Yayın Tarihi ve Kapak Görseli',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    try {
+      // publishDate'i ISO formatına dönüştür
+      const publishDate = new Date(data.publishDate);
+      
+      const formData = {
+        ...data,
+        // Sayısal değerleri kontrol et
+        issueNumber: Number(data.issueNumber),
+        volume: data.volume ? Number(data.volume) : undefined,
+        // categoryId'nin sayı olduğundan emin ol
+        categoryId: data.categoryId ? Number(data.categoryId) : undefined,
+        // Tarihi ISO formatına dönüştür
+        publishDate: publishDate.toISOString(),
+        // Etiketleri diziye dönüştür
+        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
+      };
+      
+      console.log("Gönderilen veri:", formData);
 
-    if (selectedMagazine) {
-      updateMagazineMutation.mutate({ id: selectedMagazine.id, ...formData });
-    } else {
-      createMagazineMutation.mutate(formData);
+      if (selectedMagazine) {
+        updateMagazineMutation.mutate({ id: selectedMagazine.id, ...formData });
+      } else {
+        createMagazineMutation.mutate(formData);
+      }
+    } catch (error) {
+      console.error("Form verisi dönüştürme hatası:", error);
+      toast({
+        title: 'Hata',
+        description: 'Veri formatı dönüştürülürken bir hata oluştu. Lütfen tüm alanları kontrol edin.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -620,7 +646,7 @@ export default function DigitalMagazinePage() {
 
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="categoryId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Kategori</FormLabel>
@@ -632,7 +658,7 @@ export default function DigitalMagazinePage() {
                         </FormControl>
                         <SelectContent>
                           {categories.map((category: any) => (
-                            <SelectItem key={category.id} value={category.id.toString()}>
+                            <SelectItem key={category.id} value={category.id}>
                               {category.name}
                             </SelectItem>
                           ))}
