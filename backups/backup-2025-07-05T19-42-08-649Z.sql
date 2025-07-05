@@ -34,14 +34,14 @@ CREATE TABLE public.advertisements (
     "position" character varying(50) NOT NULL,
     size character varying(50) NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    start_date timestamp without time zone,
-    end_date timestamp without time zone,
+    start_date timestamp(6) without time zone,
+    end_date timestamp(6) without time zone,
     click_count integer DEFAULT 0 NOT NULL,
     impressions integer DEFAULT 0 NOT NULL,
     priority integer DEFAULT 0 NOT NULL,
     created_by integer NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -52,11 +52,10 @@ ALTER TABLE public.advertisements OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.advertisements_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -84,13 +83,13 @@ CREATE TABLE public.articles (
     author_id integer NOT NULL,
     category_id integer NOT NULL,
     view_count integer DEFAULT 0 NOT NULL,
-    published_at timestamp without time zone,
-    scheduled_at timestamp without time zone,
+    published_at timestamp(6) without time zone,
+    scheduled_at timestamp(6) without time zone,
     meta_title text,
     meta_description text,
     keywords text,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -101,11 +100,10 @@ ALTER TABLE public.articles OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.articles_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -130,8 +128,8 @@ CREATE TABLE public.categories (
     parent_id integer,
     sort_order integer DEFAULT 0,
     is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -142,11 +140,10 @@ ALTER TABLE public.categories OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.categories_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -168,7 +165,7 @@ CREATE TABLE public.cities (
     name text NOT NULL,
     slug text NOT NULL,
     code text NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -179,11 +176,10 @@ ALTER TABLE public.cities OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.cities_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -217,11 +213,11 @@ CREATE TABLE public.classified_ads (
     is_premium boolean DEFAULT false NOT NULL,
     is_urgent boolean DEFAULT false NOT NULL,
     view_count integer DEFAULT 0 NOT NULL,
-    expires_at timestamp without time zone,
+    expires_at timestamp(6) without time zone,
     approved_by integer,
-    approved_at timestamp without time zone,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    approved_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -232,11 +228,10 @@ ALTER TABLE public.classified_ads OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.classified_ads_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -260,7 +255,7 @@ CREATE TABLE public.comments (
     author_email text NOT NULL,
     content text NOT NULL,
     status text DEFAULT 'pending'::text NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -271,11 +266,10 @@ ALTER TABLE public.comments OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.comments_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -297,7 +291,7 @@ CREATE TABLE public.digital_magazines (
     title character varying(255) NOT NULL,
     issue_number integer NOT NULL,
     volume integer,
-    publish_date timestamp without time zone NOT NULL,
+    publish_date timestamp(6) without time zone NOT NULL,
     cover_image_url character varying(500) NOT NULL,
     pdf_url character varying(500),
     description text,
@@ -309,8 +303,8 @@ CREATE TABLE public.digital_magazines (
     language character varying(10) DEFAULT 'tr'::character varying,
     price numeric(10,2) DEFAULT 0.00,
     download_count integer DEFAULT 0,
-    created_at timestamp without time zone DEFAULT now(),
-    updated_at timestamp without time zone DEFAULT now()
+    created_at timestamp(6) without time zone DEFAULT now(),
+    updated_at timestamp(6) without time zone DEFAULT now()
 );
 
 
@@ -321,11 +315,10 @@ ALTER TABLE public.digital_magazines OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.digital_magazines_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -352,8 +345,8 @@ CREATE TABLE public.magazine_categories (
     parent_id integer,
     sort_order integer DEFAULT 0,
     is_active boolean DEFAULT true,
-    created_at timestamp without time zone DEFAULT now(),
-    updated_at timestamp without time zone DEFAULT now()
+    created_at timestamp(6) without time zone DEFAULT now(),
+    updated_at timestamp(6) without time zone DEFAULT now()
 );
 
 
@@ -364,11 +357,10 @@ ALTER TABLE public.magazine_categories OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.magazine_categories_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -393,7 +385,7 @@ CREATE TABLE public.media (
     size integer NOT NULL,
     path text NOT NULL,
     uploaded_by integer NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -404,11 +396,10 @@ ALTER TABLE public.media OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.media_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -442,13 +433,13 @@ CREATE TABLE public.news (
     category_id integer NOT NULL,
     city_id integer,
     view_count integer DEFAULT 0 NOT NULL,
-    published_at timestamp without time zone,
-    scheduled_at timestamp without time zone,
+    published_at timestamp(6) without time zone,
+    scheduled_at timestamp(6) without time zone,
     meta_title text,
     meta_description text,
     keywords text,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -459,11 +450,10 @@ ALTER TABLE public.news OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.news_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -484,7 +474,7 @@ CREATE TABLE public.newspaper_pages (
     id integer NOT NULL,
     title character varying(255) NOT NULL,
     page_number integer NOT NULL,
-    issue_date timestamp without time zone NOT NULL,
+    issue_date timestamp(6) without time zone NOT NULL,
     image_url character varying(500) NOT NULL,
     pdf_url character varying(500),
     description text,
@@ -492,8 +482,8 @@ CREATE TABLE public.newspaper_pages (
     publisher_id integer DEFAULT 1 NOT NULL,
     edition character varying(100),
     language character varying(10) DEFAULT 'tr'::character varying,
-    created_at timestamp without time zone DEFAULT now(),
-    updated_at timestamp without time zone DEFAULT now()
+    created_at timestamp(6) without time zone DEFAULT now(),
+    updated_at timestamp(6) without time zone DEFAULT now()
 );
 
 
@@ -504,11 +494,10 @@ ALTER TABLE public.newspaper_pages OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.newspaper_pages_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -534,8 +523,8 @@ CREATE TABLE public.sources (
     contact_email text,
     type text DEFAULT 'online'::text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -546,11 +535,10 @@ ALTER TABLE public.sources OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.sources_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -576,7 +564,7 @@ CREATE TABLE public.users (
     last_name text NOT NULL,
     role text DEFAULT 'writer'::text NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp(6) without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -587,11 +575,10 @@ ALTER TABLE public.users OWNER TO postgres;
 --
 
 CREATE SEQUENCE public.users_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
-    NO MAXVALUE
+    MAXVALUE 2147483647
     CACHE 1;
 
 
@@ -720,7 +707,6 @@ COPY public.articles (id, title, slug, summary, content, featured_image, status,
 COPY public.categories (id, name, slug, description, parent_id, sort_order, is_active, created_at, updated_at) FROM stdin;
 1	dsfsfsd	dsfsfsd		\N	0	t	2025-07-05 18:26:02.152178	2025-07-05 18:26:02.152178
 2	dfggdfgfdgdf	dfggdfgfdgdf		\N	0	t	2025-07-05 18:26:08.087735	2025-07-05 18:26:08.087735
-4	sadasdas	sadasdas		\N	0	t	2025-07-05 20:57:18.039453	2025-07-05 20:57:18.039453
 \.
 
 
@@ -730,56 +716,56 @@ COPY public.categories (id, name, slug, description, parent_id, sort_order, is_a
 
 COPY public.cities (id, name, slug, code, created_at) FROM stdin;
 1	Adana	adana	01	2025-07-05 19:44:17.332179
-2	Adıyaman	adiyaman	02	2025-07-05 19:44:17.34585
+2	AdÄ±yaman	adiyaman	02	2025-07-05 19:44:17.34585
 3	Afyonkarahisar	afyonkarahisar	03	2025-07-05 19:44:17.347438
-4	Ağrı	agri	04	2025-07-05 19:44:17.348166
+4	AÄŸrÄ±	agri	04	2025-07-05 19:44:17.348166
 5	Amasya	amasya	05	2025-07-05 19:44:17.348893
 6	Ankara	ankara	06	2025-07-05 19:44:17.349624
 7	Antalya	antalya	07	2025-07-05 19:44:17.350505
 8	Artvin	artvin	08	2025-07-05 19:44:17.351547
-9	Aydın	aydin	09	2025-07-05 19:44:17.352804
-10	Balıkesir	balikesir	10	2025-07-05 19:44:17.353865
+9	AydÄ±n	aydin	09	2025-07-05 19:44:17.352804
+10	BalÄ±kesir	balikesir	10	2025-07-05 19:44:17.353865
 11	Bilecik	bilecik	11	2025-07-05 19:44:17.354857
-12	Bingöl	bingol	12	2025-07-05 19:44:17.355674
+12	BingÃ¶l	bingol	12	2025-07-05 19:44:17.355674
 13	Bitlis	bitlis	13	2025-07-05 19:44:17.356545
 14	Bolu	bolu	14	2025-07-05 19:44:17.357335
 15	Burdur	burdur	15	2025-07-05 19:44:17.35799
 16	Bursa	bursa	16	2025-07-05 19:44:17.358997
-17	Çanakkale	canakkale	17	2025-07-05 19:44:17.359547
-18	Çankırı	cankiri	18	2025-07-05 19:44:17.360213
-19	Çorum	corum	19	2025-07-05 19:44:17.360819
+17	Ã‡anakkale	canakkale	17	2025-07-05 19:44:17.359547
+18	Ã‡ankÄ±rÄ±	cankiri	18	2025-07-05 19:44:17.360213
+19	Ã‡orum	corum	19	2025-07-05 19:44:17.360819
 20	Denizli	denizli	20	2025-07-05 19:44:17.361271
-21	Diyarbakır	diyarbakir	21	2025-07-05 19:44:17.361854
+21	DiyarbakÄ±r	diyarbakir	21	2025-07-05 19:44:17.361854
 22	Edirne	edirne	22	2025-07-05 19:44:17.362461
-23	Elazığ	elazig	23	2025-07-05 19:44:17.362984
+23	ElazÄ±ÄŸ	elazig	23	2025-07-05 19:44:17.362984
 24	Erzincan	erzincan	24	2025-07-05 19:44:17.363464
 25	Erzurum	erzurum	25	2025-07-05 19:44:17.36396
-26	Eskişehir	eskisehir	26	2025-07-05 19:44:17.364457
+26	EskiÅŸehir	eskisehir	26	2025-07-05 19:44:17.364457
 27	Gaziantep	gaziantep	27	2025-07-05 19:44:17.365056
 28	Giresun	giresun	28	2025-07-05 19:44:17.365485
-29	Gümüşhane	gumushane	29	2025-07-05 19:44:17.365908
+29	GÃ¼mÃ¼ÅŸhane	gumushane	29	2025-07-05 19:44:17.365908
 30	Hakkari	hakkari	30	2025-07-05 19:44:17.366304
 31	Hatay	hatay	31	2025-07-05 19:44:17.366701
 32	Isparta	isparta	32	2025-07-05 19:44:17.367091
 33	Mersin	mersin	33	2025-07-05 19:44:17.367905
-34	İstanbul	istanbul	34	2025-07-05 19:44:17.368677
-35	İzmir	izmir	35	2025-07-05 19:44:17.369176
+34	Ä°stanbul	istanbul	34	2025-07-05 19:44:17.368677
+35	Ä°zmir	izmir	35	2025-07-05 19:44:17.369176
 36	Kars	kars	36	2025-07-05 19:44:17.369596
 37	Kastamonu	kastamonu	37	2025-07-05 19:44:17.369993
 38	Kayseri	kayseri	38	2025-07-05 19:44:17.370382
-39	Kırklareli	kirklareli	39	2025-07-05 19:44:17.370846
-40	Kırşehir	kirsehir	40	2025-07-05 19:44:17.371383
+39	KÄ±rklareli	kirklareli	39	2025-07-05 19:44:17.370846
+40	KÄ±rÅŸehir	kirsehir	40	2025-07-05 19:44:17.371383
 41	Kocaeli	kocaeli	41	2025-07-05 19:44:17.371788
 42	Konya	konya	42	2025-07-05 19:44:17.372239
-43	Kütahya	kutahya	43	2025-07-05 19:44:17.372668
+43	KÃ¼tahya	kutahya	43	2025-07-05 19:44:17.372668
 44	Malatya	malatya	44	2025-07-05 19:44:17.373072
 45	Manisa	manisa	45	2025-07-05 19:44:17.37348
-46	Kahramanmaraş	kahramanmaras	46	2025-07-05 19:44:17.373902
+46	KahramanmaraÅŸ	kahramanmaras	46	2025-07-05 19:44:17.373902
 47	Mardin	mardin	47	2025-07-05 19:44:17.374323
-48	Muğla	mugla	48	2025-07-05 19:44:17.374774
-49	Muş	mus	49	2025-07-05 19:44:17.375193
-50	Nevşehir	nevsehir	50	2025-07-05 19:44:17.375787
-51	Niğde	nigde	51	2025-07-05 19:44:17.376237
+48	MuÄŸla	mugla	48	2025-07-05 19:44:17.374774
+49	MuÅŸ	mus	49	2025-07-05 19:44:17.375193
+50	NevÅŸehir	nevsehir	50	2025-07-05 19:44:17.375787
+51	NiÄŸde	nigde	51	2025-07-05 19:44:17.376237
 52	Ordu	ordu	52	2025-07-05 19:44:17.376648
 53	Rize	rize	53	2025-07-05 19:44:17.377047
 54	Sakarya	sakarya	54	2025-07-05 19:44:17.377441
@@ -787,29 +773,27 @@ COPY public.cities (id, name, slug, code, created_at) FROM stdin;
 56	Siirt	siirt	56	2025-07-05 19:44:17.378253
 57	Sinop	sinop	57	2025-07-05 19:44:17.37866
 58	Sivas	sivas	58	2025-07-05 19:44:17.379053
-59	Tekirdağ	tekirdag	59	2025-07-05 19:44:17.379454
+59	TekirdaÄŸ	tekirdag	59	2025-07-05 19:44:17.379454
 60	Tokat	tokat	60	2025-07-05 19:44:17.379865
 61	Trabzon	trabzon	61	2025-07-05 19:44:17.380271
 62	Tunceli	tunceli	62	2025-07-05 19:44:17.38068
-63	Şanlıurfa	sanliurfa	63	2025-07-05 19:44:17.381079
-64	Uşak	usak	64	2025-07-05 19:44:17.381482
+64	UÅŸak	usak	64	2025-07-05 19:44:17.381482
 65	Van	van	65	2025-07-05 19:44:17.381905
 66	Yozgat	yozgat	66	2025-07-05 19:44:17.38243
 67	Zonguldak	zonguldak	67	2025-07-05 19:44:17.382841
 68	Aksaray	aksaray	68	2025-07-05 19:44:17.383256
 69	Bayburt	bayburt	69	2025-07-05 19:44:17.383667
 70	Karaman	karaman	70	2025-07-05 19:44:17.384452
-71	Kırıkkale	kirikkale	71	2025-07-05 19:44:17.385032
+71	KÄ±rÄ±kkale	kirikkale	71	2025-07-05 19:44:17.385032
 72	Batman	batman	72	2025-07-05 19:44:17.38554
-73	Şırnak	sirnak	73	2025-07-05 19:44:17.386058
-74	Bartın	bartin	74	2025-07-05 19:44:17.386488
+74	BartÄ±n	bartin	74	2025-07-05 19:44:17.386488
 75	Ardahan	ardahan	75	2025-07-05 19:44:17.386902
-76	Iğdır	igdir	76	2025-07-05 19:44:17.387305
+76	IÄŸdÄ±r	igdir	76	2025-07-05 19:44:17.387305
 77	Yalova	yalova	77	2025-07-05 19:44:17.387871
-78	Karabük	karabuk	78	2025-07-05 19:44:17.388278
+78	KarabÃ¼k	karabuk	78	2025-07-05 19:44:17.388278
 79	Kilis	kilis	79	2025-07-05 19:44:17.388682
 80	Osmaniye	osmaniye	80	2025-07-05 19:44:17.389078
-81	Düzce	duzce	81	2025-07-05 19:44:17.389498
+81	DÃ¼zce	duzce	81	2025-07-05 19:44:17.389498
 \.
 
 
@@ -866,7 +850,7 @@ COPY public.media (id, filename, original_name, mime_type, size, path, uploaded_
 
 COPY public.news (id, title, slug, summary, content, featured_image, video_url, video_thumbnail, source, source_id, status, author_id, editor_id, category_id, city_id, view_count, published_at, scheduled_at, meta_title, meta_description, keywords, created_at, updated_at) FROM stdin;
 1	sdfdsfsdf	sdfdsfsdf	sdfdsfsdf	sdfsdfsdf	\N	\N	\N	\N	\N	published	1	\N	2	\N	0	2025-07-05 15:26:23.44	\N	\N	\N	\N	2025-07-05 18:26:23.485572	2025-07-05 18:26:23.485572
-2	göçe	goce	çünşıl	<p>Test haber i�erigi</p>	\N	\N	\N	\N	1	review	1	\N	2	8	0	2025-07-05 16:50:19.166	\N	\N	\N	\N	2025-07-05 18:38:56.320484	2025-07-05 16:54:34.673
+2	gÃ¶Ã§e	goce	Ã§Ã¼nÅŸÄ±l	<p>Test haber iï¿½erigi</p>	\N	\N	\N	\N	1	review	1	\N	2	8	0	2025-07-05 16:50:19.166	\N	\N	\N	\N	2025-07-05 18:38:56.320484	2025-07-05 16:54:34.673
 \.
 
 
@@ -883,7 +867,7 @@ COPY public.newspaper_pages (id, title, page_number, issue_date, image_url, pdf_
 --
 
 COPY public.sources (id, name, slug, description, website, contact_email, type, is_active, created_at, updated_at) FROM stdin;
-1	Test Kaynak	test-kaynak	Test kaynak a�iklamasi	https://example.com	contact@example.com	online	t	2025-07-05 15:40:40.426	2025-07-05 15:40:40.426
+1	Test Kaynak	test-kaynak	Test kaynak aï¿½iklamasi	https://example.com	contact@example.com	online	t	2025-07-05 15:40:40.426	2025-07-05 15:40:40.426
 \.
 
 
@@ -894,12 +878,11 @@ COPY public.sources (id, name, slug, description, website, contact_email, type, 
 COPY public.users (id, username, email, password, first_name, last_name, role, is_active, created_at) FROM stdin;
 1	testuser	testuser@example.com	password123	Test	User	writer	t	2025-07-05 18:39:55.179626
 2	admin	admin@konyapostasi.com	admin123	Admin	User	admin	t	2025-07-05 19:56:59.169016
-3	editor1	editor1@konyapostasi.com	editor123	Ahmet	Yılmaz	editor	t	2025-07-05 19:56:59.182528
+3	editor1	editor1@konyapostasi.com	editor123	Ahmet	YÄ±lmaz	editor	t	2025-07-05 19:56:59.182528
 4	editor2	editor2@konyapostasi.com	editor123	Mehmet	Kaya	editor	t	2025-07-05 19:56:59.183796
-5	writer1	writer1@konyapostasi.com	writer123	Ayşe	Demir	writer	t	2025-07-05 19:56:59.184985
-6	writer2	writer2@konyapostasi.com	writer123	Fatma	Çelik	writer	t	2025-07-05 19:56:59.186649
-7	editor3	editor3@konyapostasi.com	editor123	Ali	Öztürk	editor	t	2025-07-05 19:58:38.837267
-8	editor4	editor4@konyapostasi.com	editor123	Zeynep	Şahin	editor	t	2025-07-05 19:58:38.852032
+5	writer1	writer1@konyapostasi.com	writer123	AyÅŸe	Demir	writer	t	2025-07-05 19:56:59.184985
+6	writer2	writer2@konyapostasi.com	writer123	Fatma	Ã‡elik	writer	t	2025-07-05 19:56:59.186649
+7	editor3	editor3@konyapostasi.com	editor123	Ali	Ã–ztÃ¼rk	editor	t	2025-07-05 19:58:38.837267
 \.
 
 
@@ -921,7 +904,7 @@ SELECT pg_catalog.setval('public.articles_id_seq', 1, true);
 -- Name: categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.categories_id_seq', 4, true);
+SELECT pg_catalog.setval('public.categories_id_seq', 3, true);
 
 
 --

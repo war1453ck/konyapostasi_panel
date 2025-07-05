@@ -206,3 +206,165 @@
 2025-07-05 14:27:02 +03:00:   address: '127.0.0.1',
 2025-07-05 14:27:02 +03:00:   port: 3001
 2025-07-05 14:27:02 +03:00: }
+2025-07-05 22:38:57 +03:00: Kategori sorgusunda hata: error: password authentication failed for user "postgres"
+2025-07-05 22:38:57 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:38:57 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:38:57 +03:00:     at async DatabaseStorage.getAllCategories (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:495:26)
+2025-07-05 22:38:57 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:2203:27 {
+2025-07-05 22:38:57 +03:00:   length: 104,
+2025-07-05 22:38:57 +03:00:   severity: 'FATAL',
+2025-07-05 22:38:57 +03:00:   code: '28P01',
+2025-07-05 22:38:57 +03:00:   detail: undefined,
+2025-07-05 22:38:57 +03:00:   hint: undefined,
+2025-07-05 22:38:57 +03:00:   position: undefined,
+2025-07-05 22:38:57 +03:00:   internalPosition: undefined,
+2025-07-05 22:38:57 +03:00:   internalQuery: undefined,
+2025-07-05 22:38:57 +03:00:   where: undefined,
+2025-07-05 22:38:57 +03:00:   schema: undefined,
+2025-07-05 22:38:57 +03:00:   table: undefined,
+2025-07-05 22:38:57 +03:00:   column: undefined,
+2025-07-05 22:38:57 +03:00:   dataType: undefined,
+2025-07-05 22:38:57 +03:00:   constraint: undefined,
+2025-07-05 22:38:57 +03:00:   file: 'auth.c',
+2025-07-05 22:38:57 +03:00:   line: '324',
+2025-07-05 22:38:57 +03:00:   routine: 'auth_failed'
+2025-07-05 22:38:57 +03:00: }
+2025-07-05 22:38:57 +03:00: Kategori hatası: error: password authentication failed for user "postgres"
+2025-07-05 22:38:57 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:38:57 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:38:57 +03:00:     at async DatabaseStorage.getAllCategories (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:495:26)
+2025-07-05 22:38:57 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:2203:27 {
+2025-07-05 22:38:57 +03:00:   length: 104,
+2025-07-05 22:38:57 +03:00:   severity: 'FATAL',
+2025-07-05 22:38:57 +03:00:   code: '28P01',
+2025-07-05 22:38:57 +03:00:   detail: undefined,
+2025-07-05 22:38:57 +03:00:   hint: undefined,
+2025-07-05 22:38:57 +03:00:   position: undefined,
+2025-07-05 22:38:57 +03:00:   internalPosition: undefined,
+2025-07-05 22:38:57 +03:00:   internalQuery: undefined,
+2025-07-05 22:38:57 +03:00:   where: undefined,
+2025-07-05 22:38:57 +03:00:   schema: undefined,
+2025-07-05 22:38:57 +03:00:   table: undefined,
+2025-07-05 22:38:57 +03:00:   column: undefined,
+2025-07-05 22:38:57 +03:00:   dataType: undefined,
+2025-07-05 22:38:57 +03:00:   constraint: undefined,
+2025-07-05 22:38:57 +03:00:   file: 'auth.c',
+2025-07-05 22:38:57 +03:00:   line: '324',
+2025-07-05 22:38:57 +03:00:   routine: 'auth_failed'
+2025-07-05 22:38:57 +03:00: }
+2025-07-05 22:39:04 +03:00: Kategori sorgusunda hata: error: password authentication failed for user "postgres"
+2025-07-05 22:39:04 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:39:04 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:39:04 +03:00:     at async DatabaseStorage.getAllCategories (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:495:26)
+2025-07-05 22:39:04 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:2203:27 {
+2025-07-05 22:39:04 +03:00:   length: 104,
+2025-07-05 22:39:04 +03:00:   severity: 'FATAL',
+2025-07-05 22:39:04 +03:00:   code: '28P01',
+2025-07-05 22:39:04 +03:00:   detail: undefined,
+2025-07-05 22:39:04 +03:00:   hint: undefined,
+2025-07-05 22:39:04 +03:00:   position: undefined,
+2025-07-05 22:39:04 +03:00:   internalPosition: undefined,
+2025-07-05 22:39:04 +03:00:   internalQuery: undefined,
+2025-07-05 22:39:04 +03:00:   where: undefined,
+2025-07-05 22:39:04 +03:00:   schema: undefined,
+2025-07-05 22:39:04 +03:00:   table: undefined,
+2025-07-05 22:39:04 +03:00:   column: undefined,
+2025-07-05 22:39:04 +03:00:   dataType: undefined,
+2025-07-05 22:39:04 +03:00:   constraint: undefined,
+2025-07-05 22:39:04 +03:00:   file: 'auth.c',
+2025-07-05 22:39:04 +03:00:   line: '324',
+2025-07-05 22:39:04 +03:00:   routine: 'auth_failed'
+2025-07-05 22:39:04 +03:00: }
+2025-07-05 22:39:04 +03:00: Kategori hatası: error: password authentication failed for user "postgres"
+2025-07-05 22:39:04 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:39:04 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:39:04 +03:00:     at async DatabaseStorage.getAllCategories (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:495:26)
+2025-07-05 22:39:04 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:2203:27 {
+2025-07-05 22:39:04 +03:00:   length: 104,
+2025-07-05 22:39:04 +03:00:   severity: 'FATAL',
+2025-07-05 22:39:04 +03:00:   code: '28P01',
+2025-07-05 22:39:04 +03:00:   detail: undefined,
+2025-07-05 22:39:04 +03:00:   hint: undefined,
+2025-07-05 22:39:04 +03:00:   position: undefined,
+2025-07-05 22:39:04 +03:00:   internalPosition: undefined,
+2025-07-05 22:39:04 +03:00:   internalQuery: undefined,
+2025-07-05 22:39:04 +03:00:   where: undefined,
+2025-07-05 22:39:04 +03:00:   schema: undefined,
+2025-07-05 22:39:04 +03:00:   table: undefined,
+2025-07-05 22:39:04 +03:00:   column: undefined,
+2025-07-05 22:39:04 +03:00:   dataType: undefined,
+2025-07-05 22:39:04 +03:00:   constraint: undefined,
+2025-07-05 22:39:04 +03:00:   file: 'auth.c',
+2025-07-05 22:39:04 +03:00:   line: '324',
+2025-07-05 22:39:04 +03:00:   routine: 'auth_failed'
+2025-07-05 22:39:04 +03:00: }
+2025-07-05 22:39:11 +03:00: Error fetching articles: error: password authentication failed for user "postgres"
+2025-07-05 22:39:11 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:39:11 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:39:11 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/node_modules/drizzle-orm/node-postgres/session.js:83:22
+2025-07-05 22:39:11 +03:00:     at async DatabaseStorage.getAllArticles (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:646:204)
+2025-07-05 22:39:11 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:1295:27 {
+2025-07-05 22:39:11 +03:00:   length: 104,
+2025-07-05 22:39:11 +03:00:   severity: 'FATAL',
+2025-07-05 22:39:11 +03:00:   code: '28P01',
+2025-07-05 22:39:11 +03:00:   detail: undefined,
+2025-07-05 22:39:11 +03:00:   hint: undefined,
+2025-07-05 22:39:11 +03:00:   position: undefined,
+2025-07-05 22:39:11 +03:00:   internalPosition: undefined,
+2025-07-05 22:39:11 +03:00:   internalQuery: undefined,
+2025-07-05 22:39:11 +03:00:   where: undefined,
+2025-07-05 22:39:11 +03:00:   schema: undefined,
+2025-07-05 22:39:11 +03:00:   table: undefined,
+2025-07-05 22:39:11 +03:00:   column: undefined,
+2025-07-05 22:39:11 +03:00:   dataType: undefined,
+2025-07-05 22:39:11 +03:00:   constraint: undefined,
+2025-07-05 22:39:11 +03:00:   file: 'auth.c',
+2025-07-05 22:39:11 +03:00:   line: '324',
+2025-07-05 22:39:11 +03:00:   routine: 'auth_failed'
+2025-07-05 22:39:11 +03:00: }
+2025-07-05 22:39:11 +03:00: Kategori sorgusunda hata: error: password authentication failed for user "postgres"
+2025-07-05 22:39:11 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:39:11 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:39:11 +03:00:     at async DatabaseStorage.getAllCategories (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:495:26)
+2025-07-05 22:39:11 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:2203:27 {
+2025-07-05 22:39:11 +03:00:   length: 104,
+2025-07-05 22:39:11 +03:00:   severity: 'FATAL',
+2025-07-05 22:39:11 +03:00:   code: '28P01',
+2025-07-05 22:39:11 +03:00:   detail: undefined,
+2025-07-05 22:39:11 +03:00:   hint: undefined,
+2025-07-05 22:39:11 +03:00:   position: undefined,
+2025-07-05 22:39:11 +03:00:   internalPosition: undefined,
+2025-07-05 22:39:11 +03:00:   internalQuery: undefined,
+2025-07-05 22:39:11 +03:00:   where: undefined,
+2025-07-05 22:39:11 +03:00:   schema: undefined,
+2025-07-05 22:39:11 +03:00:   table: undefined,
+2025-07-05 22:39:11 +03:00:   column: undefined,
+2025-07-05 22:39:11 +03:00:   dataType: undefined,
+2025-07-05 22:39:11 +03:00:   constraint: undefined,
+2025-07-05 22:39:11 +03:00:   file: 'auth.c',
+2025-07-05 22:39:11 +03:00:   line: '324',
+2025-07-05 22:39:11 +03:00:   routine: 'auth_failed'
+2025-07-05 22:39:11 +03:00: }
+2025-07-05 22:39:11 +03:00: Kategori hatası: error: password authentication failed for user "postgres"
+2025-07-05 22:39:11 +03:00:     at C:\laragon\www\konyapostasi_panel\node_modules\pg-pool\index.js:45:11
+2025-07-05 22:39:11 +03:00:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 22:39:11 +03:00:     at async DatabaseStorage.getAllCategories (file:///C:/laragon/www/konyapostasi_panel/dist/index.js:495:26)
+2025-07-05 22:39:11 +03:00:     at async file:///C:/laragon/www/konyapostasi_panel/dist/index.js:2203:27 {
+2025-07-05 22:39:11 +03:00:   length: 104,
+2025-07-05 22:39:11 +03:00:   severity: 'FATAL',
+2025-07-05 22:39:11 +03:00:   code: '28P01',
+2025-07-05 22:39:11 +03:00:   detail: undefined,
+2025-07-05 22:39:11 +03:00:   hint: undefined,
+2025-07-05 22:39:11 +03:00:   position: undefined,
+2025-07-05 22:39:11 +03:00:   internalPosition: undefined,
+2025-07-05 22:39:11 +03:00:   internalQuery: undefined,
+2025-07-05 22:39:11 +03:00:   where: undefined,
+2025-07-05 22:39:11 +03:00:   schema: undefined,
+2025-07-05 22:39:11 +03:00:   table: undefined,
+2025-07-05 22:39:11 +03:00:   column: undefined,
+2025-07-05 22:39:11 +03:00:   dataType: undefined,
+2025-07-05 22:39:11 +03:00:   constraint: undefined,
+2025-07-05 22:39:11 +03:00:   file: 'auth.c',
+2025-07-05 22:39:11 +03:00:   line: '324',
+2025-07-05 22:39:11 +03:00:   routine: 'auth_failed'
+2025-07-05 22:39:11 +03:00: }
