@@ -96,10 +96,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories endpoints
   app.get("/api/categories", async (req, res) => {
     try {
+      console.log("Kategoriler istendi");
       const categories = await storage.getAllCategories();
+      console.log("Kategoriler alındı:", categories);
       res.json(categories);
     } catch (error) {
-      res.status(500).json({ message: "Kategoriler alınırken hata oluştu" });
+      console.error("Kategori hatası:", error);
+      res.status(500).json({ message: "Kategoriler alınırken hata oluştu", error: String(error) });
+    }
+  });
+
+  // Doğrudan SQL ile kategorileri getir
+  app.get("/api/categories-direct", async (req, res) => {
+    try {
+      console.log("Doğrudan kategoriler istendi");
+      const { Pool } = require('pg');
+      const pool = new Pool({
+        user: 'postgres',
+        host: 'localhost',
+        database: 'konyapostasi_panel',
+        password: '8587',
+        port: 5432,
+      });
+      
+      const result = await pool.query('SELECT * FROM categories ORDER BY sort_order');
+      console.log("Doğrudan kategoriler alındı:", result.rows);
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Doğrudan kategori hatası:", error);
+      res.status(500).json({ message: "Doğrudan kategoriler alınırken hata oluştu", error: String(error) });
     }
   });
 

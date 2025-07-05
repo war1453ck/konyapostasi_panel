@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   }
 
   // Use 127.0.0.1 explicitly to avoid IPv6 binding issues
-  const port = 3001;
+  const port = 3002;
   server.listen(port, "127.0.0.1", () => {
     log(`serving on http://127.0.0.1:${port}`);
   });
