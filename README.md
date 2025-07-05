@@ -22,6 +22,7 @@ Bu proje, Konya Postası haber sitesi için yönetim paneli uygulamasıdır.
 
 - Node.js (v18+)
 - PostgreSQL veritabanı
+- PM2 (opsiyonel, production ortamı için)
 
 ### Adımlar
 
@@ -57,7 +58,59 @@ Bu proje, Konya Postası haber sitesi için yönetim paneli uygulamasıdır.
    npm run dev
    ```
 
-7. Tarayıcınızda `http://127.0.0.1:3000` adresine gidin.
+7. Tarayıcınızda `http://127.0.0.1:3001` adresine gidin.
+
+## PM2 ile Çalıştırma
+
+### Geliştirme Ortamında
+
+1. PM2'yi global olarak yükleyin:
+   ```
+   npm install -g pm2
+   ```
+
+2. Uygulamayı build edin:
+   ```
+   npm run build
+   ```
+
+3. PM2 ile başlatın:
+   ```
+   pm2 start pm2-ecosystem.config.cjs
+   ```
+
+### Production Ortamında
+
+1. Uygulamayı build edin:
+   ```
+   npm run build
+   ```
+
+2. PM2 ile production modunda başlatın:
+   ```
+   pm2 start pm2-ecosystem.config.cjs --env production
+   ```
+
+3. PM2 komutları:
+   - Durumu kontrol etme: `pm2 status`
+   - Logları görüntüleme: `pm2 logs konyapostasi-panel`
+   - Uygulamayı yeniden başlatma: `pm2 restart konyapostasi-panel`
+   - Uygulamayı durdurma: `pm2 stop konyapostasi-panel`
+   - Uygulamayı silme: `pm2 delete konyapostasi-panel`
+
+## Windows'ta Çalıştırma
+
+Windows sistemlerde PowerShell'de ExecutionPolicy sorunu yaşarsanız, aşağıdaki komutu kullanın:
+
+```powershell
+powershell -Command "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; npm run dev"
+```
+
+Veya PM2 ile çalıştırmak için:
+
+```powershell
+powershell -Command "Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; pm2 start pm2-ecosystem.config.cjs"
+```
 
 ## Özellikler
 
@@ -72,20 +125,4 @@ Bu proje, Konya Postası haber sitesi için yönetim paneli uygulamasıdır.
 - Dijital dergi yönetimi
 - Gazete sayfaları yönetimi
 - SEO ayarları
-- Analitik raporları
-
-## Windows'ta Çalıştırma
-
-Windows sistemlerde çalıştırırken, PowerShell'de aşağıdaki komutu kullanın:
-
-```powershell
-$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/konyapostasi_panel"; $env:NODE_ENV="development"; npm run dev
-```
-
-Veya komut istemi (CMD) için:
-
-```cmd
-set DATABASE_URL=postgresql://postgres:postgres@localhost:5432/konyapostasi_panel
-set NODE_ENV=development
-npm run dev
-``` 
+- Analitik raporları 
