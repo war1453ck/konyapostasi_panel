@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,10 +25,32 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import * as LucideIcons from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+// Yedekleme ayarları için şema
+const backupSettingsSchema = z.object({
+  autoBackup: z.boolean(),
+  frequency: z.enum(['daily', 'weekly', 'monthly']),
+});
+
+type BackupSettings = z.infer<typeof backupSettingsSchema>;
+
+// Yedek dosyası tipi
+interface BackupFile {
+  filename: string;
+  date: string;
+  size: string;
+  type: 'Otomatik' | 'Manuel';
+}
 
 export default function Settings() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generalForm = useForm({
     defaultValues: {
@@ -70,6 +92,130 @@ export default function Settings() {
       newUserNotification: true,
       systemAlerts: true,
       weeklyReport: true,
+    },
+  });
+
+  // Yedekleme ayarları için form
+  const backupForm = useForm<BackupSettings>({
+    resolver: zodResolver(backupSettingsSchema),
+    defaultValues: {
+      autoBackup: true,
+      frequency: 'daily',
+    },
+  });
+
+  // Yedekleme ayarlarını al
+  const { data: backupSettings } = useQuery({
+    queryKey: ['/api/backup/settings'],
+    onSuccess: (data) => {
+      backupForm.reset(data);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Hata',
+        description: 'Yedekleme ayarları alınamadı',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Yedekleme listesini al
+  const { data: backupList = [], refetch: refetchBackupList } = useQuery<BackupFile[]>({
+    queryKey: ['/api/backup/list'],
+    onError: (error) => {
+      toast({
+        title: 'Hata',
+        description: 'Yedekleme listesi alınamadı',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Yedekleme ayarlarını güncelle
+  const updateBackupSettingsMutation = useMutation({
+    mutationFn: async (data: BackupSettings) => {
+      return apiRequest('POST', '/api/backup/settings', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Başarılı',
+        description: 'Yedekleme ayarları güncellendi',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Yedekleme ayarları güncellenirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Manuel yedekleme oluştur
+  const createBackupMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/backup/create');
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Başarılı',
+        description: 'Yedekleme başarıyla oluşturuldu',
+      });
+      refetchBackupList();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Yedekleme oluşturulurken bir hata oluştu',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Yedekleme geri yükle
+  const restoreBackupMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return fetch('/api/backup/restore', {
+        method: 'POST',
+        body: formData,
+      }).then(res => {
+        if (!res.ok) throw new Error('Yedekleme geri yüklenirken bir hata oluştu');
+        return res.json();
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Başarılı',
+        description: 'Yedekleme başarıyla geri yüklendi',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Yedekleme geri yüklenirken bir hata oluştu',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Yedekleme dosyasını sil
+  const deleteBackupMutation = useMutation({
+    mutationFn: async (filename: string) => {
+      return apiRequest('DELETE', `/api/backup/${filename}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Başarılı',
+        description: 'Yedekleme dosyası silindi',
+      });
+      refetchBackupList();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Hata',
+        description: error.message || 'Yedekleme dosyası silinirken bir hata oluştu',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -148,6 +294,56 @@ export default function Settings() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const onBackupSettingsSubmit = (data: BackupSettings) => {
+    updateBackupSettingsMutation.mutate(data);
+  };
+
+  const handleCreateBackup = () => {
+    createBackupMutation.mutate();
+  };
+
+  const handleRestoreBackup = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('backupFile', file);
+    
+    restoreBackupMutation.mutate(formData);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownloadBackup = (filename: string) => {
+    window.open(`/api/backup/download/${filename}`, '_blank');
+  };
+
+  const handleDeleteBackup = (filename: string) => {
+    if (window.confirm('Bu yedekleme dosyasını silmek istediğinizden emin misiniz?')) {
+      deleteBackupMutation.mutate(filename);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -658,24 +854,60 @@ export default function Settings() {
                     <CardTitle className="text-lg">Otomatik Yedekleme</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span>Otomatik yedekleme</span>
-                      <Switch defaultChecked />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Yedekleme Sıklığı</label>
-                      <Select defaultValue="daily">
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Günlük</SelectItem>
-                          <SelectItem value="weekly">Haftalık</SelectItem>
-                          <SelectItem value="monthly">Aylık</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button className="w-full">Ayarları Kaydet</Button>
+                    <Form {...backupForm}>
+                      <form onSubmit={backupForm.handleSubmit(onBackupSettingsSubmit)} className="space-y-4">
+                        <FormField
+                          control={backupForm.control}
+                          name="autoBackup"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center justify-between">
+                              <FormLabel>Otomatik yedekleme</FormLabel>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={backupForm.control}
+                          name="frequency"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Yedekleme Sıklığı</FormLabel>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                disabled={!backupForm.watch('autoBackup')}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="daily">Günlük</SelectItem>
+                                  <SelectItem value="weekly">Haftalık</SelectItem>
+                                  <SelectItem value="monthly">Aylık</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <Button 
+                          type="submit" 
+                          className="w-full"
+                          disabled={updateBackupSettingsMutation.isPending}
+                        >
+                          {updateBackupSettingsMutation.isPending ? 'Kaydediliyor...' : 'Ayarları Kaydet'}
+                        </Button>
+                      </form>
+                    </Form>
                   </CardContent>
                 </Card>
 
@@ -687,14 +919,31 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground">
                       Sistem verilerinizin manuel yedeğini oluşturun
                     </p>
-                    <Button className="w-full" variant="outline">
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={handleCreateBackup}
+                      disabled={createBackupMutation.isPending}
+                    >
                       <LucideIcons.Download className="w-4 h-4 mr-2" />
-                      Yedek Oluştur
+                      {createBackupMutation.isPending ? 'Yedek Oluşturuluyor...' : 'Yedek Oluştur'}
                     </Button>
-                    <Button className="w-full" variant="outline">
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={handleRestoreBackup}
+                      disabled={restoreBackupMutation.isPending}
+                    >
                       <LucideIcons.Upload className="w-4 h-4 mr-2" />
-                      Yedek Geri Yükle
+                      {restoreBackupMutation.isPending ? 'Yedek Geri Yükleniyor...' : 'Yedek Geri Yükle'}
                     </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".sql"
+                      className="hidden"
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -705,26 +954,40 @@ export default function Settings() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {[
-                      { date: '25.12.2024 14:30', size: '2.4 MB', type: 'Otomatik' },
-                      { date: '24.12.2024 14:30', size: '2.3 MB', type: 'Otomatik' },
-                      { date: '23.12.2024 10:15', size: '2.1 MB', type: 'Manuel' },
-                    ].map((backup, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{backup.date}</p>
-                          <p className="text-xs text-muted-foreground">{backup.type} - {backup.size}</p>
+                    {backupList.length > 0 ? (
+                      backupList.map((backup, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium text-sm">{formatDate(backup.date)}</p>
+                            <p className="text-xs text-muted-foreground">{backup.type} - {backup.size}</p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDownloadBackup(backup.filename)}
+                              title="İndir"
+                            >
+                              <LucideIcons.Download className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDeleteBackup(backup.filename)}
+                              title="Sil"
+                            >
+                              <LucideIcons.Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            <LucideIcons.Download className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <LucideIcons.RotateCcw className="w-4 h-4" />
-                          </Button>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <LucideIcons.Database className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                        <p>Henüz yedekleme yapılmamış</p>
+                        <p className="text-sm mt-1">İlk yedeğinizi oluşturmak için "Yedek Oluştur" düğmesine tıklayın</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>

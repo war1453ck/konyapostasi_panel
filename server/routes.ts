@@ -16,10 +16,12 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import citiesRouter from "./routes/cities";
+import backupRouter from "./routes/backup";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routers
   app.use("/api/cities", citiesRouter);
+  app.use("/api/backup", backupRouter);
   
   // Stats endpoint
   app.get("/api/stats", async (req, res) => {

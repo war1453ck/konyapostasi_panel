@@ -85,25 +85,50 @@ export function serveStatic(app: Express) {
     );
   }
 
-  // Statik dosyaları servis et - assets klasörü için kesin yol belirt
-  app.use('/assets', express.static(path.join(distPath, 'assets')));
+  // Tüm istekleri logla
+  app.use((req, res, next) => {
+    log(`Request: ${req.method} ${req.url}`);
+    next();
+  });
+
+  // JavaScript ve CSS dosyaları için özel Content-Type ayarla
+  app.get('/assets/*.js', (req, res, next) => {
+    log(`Serving JS file: ${req.path}`);
+    res.set('Content-Type', 'application/javascript');
+    next();
+  });
   
-  // Diğer statik dosyalar için
-  app.use(express.static(distPath));
+  app.get('/assets/*.css', (req, res, next) => {
+    log(`Serving CSS file: ${req.path}`);
+    res.set('Content-Type', 'text/css');
+    next();
+  });
+
+  // Statik dosyaları servis et
+  app.use(express.static(distPath, { 
+    index: false,
+    etag: true,
+    maxAge: '1h'
+  }));
 
   // API istekleri dışındaki tüm istekleri index.html'e yönlendir
-  app.get('*', (req, res) => {
+  app.get('*', (req, res, next) => {
     // API isteklerini yönlendirme
     if (req.path.startsWith('/api')) {
-      return res.status(404).send('API endpoint not found');
+      return next(); // API isteklerini diğer rotalara bırak
     }
     
     const indexPath = path.join(distPath, 'index.html');
     log(`Serving index.html for: ${req.path}`);
     
     if (fs.existsSync(indexPath)) {
+      // index.html içeriğini oku ve logla
+      const indexContent = fs.readFileSync(indexPath, 'utf-8');
+      log(`index.html content length: ${indexContent.length} bytes`);
+      
       return res.sendFile(indexPath);
     } else {
+      log(`ERROR: index.html not found at ${indexPath}`);
       return res.status(404).send("Index file not found. Please rebuild the application.");
     }
   });
